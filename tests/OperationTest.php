@@ -98,15 +98,15 @@ class OperationTest extends \PHPUnit_Framework_TestCase
      *
      * @dataProvider operationDataProvider
      *
-     * @covers \Gielfeldt\TransactionalPHP\Operation::setId
-     * @covers \Gielfeldt\TransactionalPHP\Operation::id
+     * @covers \Gielfeldt\TransactionalPHP\Operation::setIdx
+     * @covers \Gielfeldt\TransactionalPHP\Operation::idx
      */
-    public function testId(Operation $operation)
+    public function testIdx(Operation $operation)
     {
         $connection = new Connection();
-        $operation->setId($connection, 'testid');
+        $operation->setIdx($connection, 'testid');
 
-        $check = $operation->id($connection);
+        $check = $operation->idx($connection);
         $this->assertSame('testid', $check, 'Correct id was not set.');
     }
 }

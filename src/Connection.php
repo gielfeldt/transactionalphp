@@ -69,7 +69,7 @@ class Connection
     public function closeSavepoints($oldDepth, $newDepth)
     {
         $idx = null;
-        for ($depth = $this->depth + 1; $depth <= $oldDepth; $depth++) {
+        for ($depth = $newDepth + 1; $depth <= $oldDepth; $depth++) {
             if (isset($this->savePoints[$depth])) {
                 $idx = isset($idx) ? $idx : $this->savePoints[$depth];
                 unset($this->savePoints[$depth]);
@@ -151,7 +151,7 @@ class Connection
         $idx = $this->idx;
         $this->idx++;
         $this->operations[$idx] = $operation;
-        $operation->setId($this, $idx);
+        $operation->setIdx($this, $idx);
         return $idx;
     }
 

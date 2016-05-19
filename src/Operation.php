@@ -10,9 +10,9 @@ namespace Gielfeldt\TransactionalPHP;
 class Operation
 {
     /**
-     * @var string
+     * @var string[]
      */
-    protected $id;
+    protected $idx;
 
     /**
      * @var callable
@@ -78,9 +78,9 @@ class Operation
      *
      * @return $this
      */
-    public function setId(Connection $connection, $id)
+    public function setIdx(Connection $connection, $idx)
     {
-        $this->id[$connection->connectionId()] = $id;
+        $this->idx[$connection->connectionId()] = $idx;
         return $this;
     }
 
@@ -92,10 +92,10 @@ class Operation
      *
      * @return string|null
      */
-    public function id(Connection $connection)
+    public function idx(Connection $connection)
     {
         $connectionId = $connection->connectionId();
-        return isset($this->id[$connectionId]) ? $this->id[$connectionId] : null;
+        return isset($this->idx[$connectionId]) ? $this->idx[$connectionId] : null;
     }
 
     /**
