@@ -178,4 +178,18 @@ class Connection
     {
         unset($this->operations[$idx]);
     }
+
+    /**
+     * Short-hand notation for adding running code.
+     *
+     * @param callable $callback
+     *   The code to run.
+     *
+     * @return int|mixed
+     */
+    public function call(callable $callback)
+    {
+        return $this->addOperation((new Operation())
+            ->setCallback($callback));
+    }
 }

@@ -45,7 +45,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test setup.
+     * Test add operation.
      *
      * @param Connection $connection
      *   The connection to perform tests on.
@@ -71,6 +71,32 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         $check = $connection->getOperation($idx);
 
         $this->assertSame($operation, $check, 'Operation was not properly added.');
+    }
+
+    /**
+     * Test call.
+     *
+     * @param Connection $connection
+     *   The connection to perform tests on.
+     *
+     * @dataProvider connectionDataProvider
+     *
+     * @covers \Gielfeldt\TransactionalPHP\Connection::call
+     */
+    public function testCall(Connection $connection)
+    {
+        $callback = function () {
+            return 'testresult';
+        };
+        $check = $connection->call($callback);
+
+        $this->assertSame('testresult', $check, 'Operation was not properly added.');
+
+        $connection->startTransaction();
+        $idx = $connection->call($callback);
+        $check = $connection->getOperation($idx)->execute();
+
+        $this->assertSame('testresult', $check, 'Operation was not properly added.');
     }
 
     /**
