@@ -73,7 +73,7 @@ class Operation
     /**
      * @param Connection $connection
      *   The connection to use for this id.
-     * @param string $id
+     * @param string $idx
      *   The id.
      *
      * @return $this
