@@ -80,7 +80,7 @@ class Operation
      */
     public function setId(Connection $connection, $id)
     {
-        $this->id[$connection->id()] = $id;
+        $this->id[$connection->connectionId()] = $id;
         return $this;
     }
 
@@ -94,7 +94,7 @@ class Operation
      */
     public function id(Connection $connection)
     {
-        $connectionId = $connection->id();
+        $connectionId = $connection->connectionId();
         return isset($this->id[$connectionId]) ? $this->id[$connectionId] : null;
     }
 

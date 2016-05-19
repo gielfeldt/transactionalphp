@@ -37,7 +37,7 @@ class Connection
     /**
      * Connection constructor.
      *
-     * @param null|string $id
+     * @param null|string $connectionId
      *   (optional) The id of the connection.
      */
     public function __construct($connectionId = null)
@@ -53,6 +53,18 @@ class Connection
     public function connectionId()
     {
         return $this->connectionId;
+    }
+
+    public function closeSavepoints($oldDepth, $newDepth)
+    {
+        $idx = null;
+        for ($depth = $this->depth + 1; $depth <= $oldDepth; $depth++) {
+            if (isset($this->savePoints[$depth])) {
+                $idx = isset($idx) ? $idx : $this->savePoints[$depth];
+                unset($this->savePoints[$depth]);
+            }
+        }
+        return $idx;
     }
 
     /**
@@ -76,13 +88,7 @@ class Connection
         }
 
         // Remove savepoints to and acquire index of latest active savepoint.
-        $idx = null;
-        for ($depth = $this->depth + 1; $depth <= $oldDepth; $depth++) {
-            if (isset($this->savePoints[$depth])) {
-                $idx = isset($idx) ? $idx : $this->savePoints[$depth];
-                unset($this->savePoints[$depth]);
-            }
-        }
+        $idx = $this->closeSavepoints($oldDepth, $this->depth);
 
         // Is this a real commit.
         if ($this->depth == 0 && isset($idx)) {
@@ -109,13 +115,7 @@ class Connection
         }
 
         // Remove savepoints to and acquire index of latest active savepoint.
-        $idx = null;
-        for ($depth = $this->depth + 1; $depth <= $oldDepth; $depth++) {
-            if (isset($this->savePoints[$depth])) {
-                $idx = isset($idx) ? $idx : $this->savePoints[$depth];
-                unset($this->savePoints[$depth]);
-            }
-        }
+        $idx = $this->closeSavepoints($oldDepth, $this->depth);
 
         // Remove operations up until latest active savepoint.
         if (isset($idx)) {
@@ -133,15 +133,15 @@ class Connection
      */
     public function addOperation(Operation $operation)
     {
-        if ($this->depth > 0) {
-            $idx = $this->idx;
-            $this->idx++;
-            $this->operations[$idx] = $operation;
-            $operation->setId($this, $idx);
-            return $idx;
-        } else {
+        if ($this->depth <= 0) {
             return $operation->execute();
         }
+
+        $idx = $this->idx;
+        $this->idx++;
+        $this->operations[$idx] = $operation;
+        $operation->setId($this, $idx);
+        return $idx;
     }
 
     /**
