@@ -94,8 +94,8 @@ class Operation
      */
     public function id(Connection $connection)
     {
-        $connection_id = $connection->id();
-        return isset($this->id[$connection_id]) ? $this->id[$connection_id] : null;
+        $connectionId = $connection->id();
+        return isset($this->id[$connectionId]) ? $this->id[$connectionId] : null;
     }
 
     /**

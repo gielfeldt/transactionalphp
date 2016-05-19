@@ -118,14 +118,8 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
 
         $connection->startTransaction();
         $idx = $connection->addOperation($operation);
-        $connection->performOperation($idx, true);
-        $check = $connection->getOperation($idx);
-        $this->assertFalse($check, 'Operation was not properly removed.');
-
-        $idx = $connection->addOperation($operation);
-        $connection->performOperation($idx, false);
-        $check = $connection->getOperation($idx);
-        $this->assertSame($operation, $check, 'Operation was not preserved properly.');
+        $connection->performOperation($idx);
+        $this->assertTrue($performed, 'Operation was not properly performed.');
     }
 
     /**

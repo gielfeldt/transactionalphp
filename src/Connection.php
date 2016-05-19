@@ -58,26 +58,26 @@ class Connection
     /**
      * {@inheritdoc}
      */
-    public function startTransaction($new_depth = null)
+    public function startTransaction($newDepth = null)
     {
-        $this->depth = isset($new_depth) ? $new_depth : $this->depth + 1;
+        $this->depth = isset($newDepth) ? $newDepth : $this->depth + 1;
         $this->savePoints[$this->depth] = $this->idx;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function commitTransaction($new_depth = null)
+    public function commitTransaction($newDepth = null)
     {
-        $old_depth = $this->depth;
-        $this->depth = isset($new_depth) ? $new_depth : $old_depth - 1;
+        $oldDepth = $this->depth;
+        $this->depth = isset($newDepth) ? $newDepth : $oldDepth - 1;
         if ($this->depth < 0) {
             throw new \RuntimeException('Trying to commit non-existant transaction.');
         }
 
         // Remove savepoints to and acquire index of latest active savepoint.
         $idx = null;
-        for ($depth = $this->depth + 1; $depth <= $old_depth; $depth++) {
+        for ($depth = $this->depth + 1; $depth <= $oldDepth; $depth++) {
             if (isset($this->savePoints[$depth])) {
                 $idx = isset($idx) ? $idx : $this->savePoints[$depth];
                 unset($this->savePoints[$depth]);
@@ -88,9 +88,10 @@ class Connection
         if ($this->depth == 0 && isset($idx)) {
             // Perform the operations if any found.
             end($this->operations);
-            $last_idx = key($this->operations);
-            for ($remove_idx = $idx; $remove_idx <= $last_idx; $remove_idx++) {
-                $this->performOperation($remove_idx);
+            $lastIdx = key($this->operations);
+            for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
+                $this->performOperation($removeIdx);
+                $this->removeOperation($removeIdx);
             }
             $this->idx = $idx;
         }
@@ -99,17 +100,17 @@ class Connection
     /**
      * {@inheritdoc}
      */
-    public function rollbackTransaction($new_depth = null)
+    public function rollbackTransaction($newDepth = null)
     {
-        $old_depth = $this->depth;
-        $this->depth = isset($new_depth) ? $new_depth : $old_depth - 1;
+        $oldDepth = $this->depth;
+        $this->depth = isset($newDepth) ? $newDepth : $oldDepth - 1;
         if ($this->depth < 0) {
             throw new \RuntimeException('Trying to rollback non-existant transaction.');
         }
 
         // Remove savepoints to and acquire index of latest active savepoint.
         $idx = null;
-        for ($depth = $this->depth + 1; $depth <= $old_depth; $depth++) {
+        for ($depth = $this->depth + 1; $depth <= $oldDepth; $depth++) {
             if (isset($this->savePoints[$depth])) {
                 $idx = isset($idx) ? $idx : $this->savePoints[$depth];
                 unset($this->savePoints[$depth]);
@@ -119,9 +120,9 @@ class Connection
         // Remove operations up until latest active savepoint.
         if (isset($idx)) {
             end($this->operations);
-            $last_idx = key($this->operations);
-            for ($remove_idx = $idx; $remove_idx <= $last_idx; $remove_idx++) {
-                $this->removeOperation($remove_idx);
+            $lastIdx = key($this->operations);
+            for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
+                $this->removeOperation($removeIdx);
             }
             reset($this->operations);
         }
@@ -154,16 +155,9 @@ class Connection
     /**
      * {@inheritdoc}
      */
-    public function performOperation($idx, $remove = true)
+    public function performOperation($idx)
     {
-        $result = null;
-        if (isset($this->operations[$idx])) {
-            $result = $this->operations[$idx]->execute();
-        }
-        if ($remove) {
-            unset($this->operations[$idx]);
-        }
-        return $result;
+        return isset($this->operations[$idx]) ? $this->operations[$idx]->execute() : null;
     }
 
     /**
