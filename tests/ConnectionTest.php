@@ -36,11 +36,11 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      */
     public function testSetup(Connection $connection)
     {
-        $id = $connection->id();
+        $id = $connection->connectionId();
         $this->assertEquals('testid', $id, 'ID was not properly set.');
 
         $connection = new Connection('testid2');
-        $id = $connection->id();
+        $id = $connection->connectionId();
         $this->assertEquals('testid2', $id, 'ID was not properly set.');
     }
 

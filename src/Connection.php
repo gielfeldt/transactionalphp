@@ -32,7 +32,7 @@ class Connection
     /**
      * @var null|string
      */
-    protected $id;
+    protected $connectionId;
 
     /**
      * Connection constructor.
@@ -40,9 +40,9 @@ class Connection
      * @param null|string $id
      *   (optional) The id of the connection.
      */
-    public function __construct($id = null)
+    public function __construct($connectionId = null)
     {
-        $this->id = isset($id) ? $id : uniqid();
+        $this->connectionId = isset($connectionId) ? $connectionId : uniqid();
     }
 
     /**
@@ -50,9 +50,9 @@ class Connection
      *
      * @return null|string
      */
-    public function id()
+    public function connectionId()
     {
-        return $this->id;
+        return $this->connectionId;
     }
 
     /**
