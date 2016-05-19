@@ -55,6 +55,17 @@ class Connection
         return $this->connectionId;
     }
 
+    /**
+     * Remove savepoints to and acquire index of latest active savepoint.
+     *
+     * @param int $oldDepth
+     *   The old depth.
+     * @param $newDepth
+     *   The new depth.
+     *
+     * @return int|null
+     *   The last index, if found.
+     */
     public function closeSavepoints($oldDepth, $newDepth)
     {
         $idx = null;
