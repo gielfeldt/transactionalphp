@@ -15,6 +15,11 @@ class Indexer
     protected $index = [];
 
     /**
+     * @var Connection
+     */
+    protected $connection;
+
+    /**
      * Indexer constructor.
      *
      * @param Connection $connection
