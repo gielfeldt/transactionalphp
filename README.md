@@ -10,9 +10,6 @@
 [![License](https://poser.pugx.org/gielfeldt/transactionalphp/license.svg)][4]
 [![Total Downloads](https://poser.pugx.org/gielfeldt/transactionalphp/downloads.svg)][1]
 
-[![Documentation Status](https://readthedocs.org/projects/transactionalphp/badge/?version=stable)][12]
-[![Documentation Status](https://readthedocs.org/projects/transactionalphp/badge/?version=latest)][12]
-
 ## Installation
 
 To install the Transactional PHP library in your project using Composer, first add the following to your `composer.json`
@@ -95,7 +92,3 @@ For more examples see the examples/ folder.
 [6]:  http://getcomposer.org
 [7]:  https://scrutinizer-ci.com/g/gielfeldt/transactionalphp/?branch=master
 [8]:  https://scrutinizer-ci.com/g/gielfeldt/transactionalphp/build-status/master
-[9]:  https://coveralls.io/github/gielfeldt/transactionalphp
-[10]: https://travis-ci.org/gielfeldt/transactionalphp
-[11]: https://www.versioneye.com/user/projects/55cb2eb9dfed0a001e000200
-[12]: https://readthedocs.org/projects/transactionalphp/?badge=latest
