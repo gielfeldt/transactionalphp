@@ -45,6 +45,7 @@ namespace Gielfeldt\TransactionalPHP\Example;
 require 'vendor/autoload.php';
 
 use Gielfeldt\TransactionalPHP\Connection;
+use Gielfeldt\TransactionalPHP\Operation;
 
 $connection = new Connection();
 
@@ -71,6 +72,7 @@ $connection->rollbackTransaction();
 
 // Commit inner transaction.
 $connection->commitTransaction();
+
 
 ```
 
