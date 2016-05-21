@@ -15,6 +15,9 @@ dependencies:
     # Enable xdebug for test coverage.
     - sed -i 's/^;//' /opt/circleci/.phpenv/versions/$(phpenv global)/etc/conf.d/xdebug.ini
 
+    # Speed me up.
+    - composer --no-interaction require hirak/prestissimo:0.2.4
+
     # Install test reporter for codeclimate.
     - composer --no-interaction require codeclimate/php-test-reporter:v0.3.2
 
