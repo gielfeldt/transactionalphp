@@ -186,7 +186,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *
      * @covers \Gielfeldt\TransactionalPHP\Connection::closeSavePoints
      * @covers \Gielfeldt\TransactionalPHP\Connection::commitTransaction
-     * @covers \Gielfeldt\TransactionalPHP\Connection::commitSavePoints
+     * @covers \Gielfeldt\TransactionalPHP\Connection::commitOperations
      */
     public function testCommitTransaction(Connection $connection)
     {
@@ -248,7 +248,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *
      * @covers \Gielfeldt\TransactionalPHP\Connection::closeSavePoints
      * @covers \Gielfeldt\TransactionalPHP\Connection::rollbackTransaction
-     * @covers \Gielfeldt\TransactionalPHP\Connection::rollbackSavePoints
+     * @covers \Gielfeldt\TransactionalPHP\Connection::rollbackOperations
      */
     public function testRollbackTransaction(Connection $connection)
     {

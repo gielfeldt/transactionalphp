@@ -66,15 +66,15 @@ class Connection
     }
 
     /**
-     * Remove savepoints to and acquire index of latest active savepoint.
+     * Remove save points to and acquire index of latest active savepoint.
      *
      * @param int $oldDepth
      *   The old depth.
      * @param $newDepth
      *   The new depth.
      *
-     * @return int|null
-     *   The last index, if found.
+     * @return Operation[]
+     *   The operations found when closing save points.
      */
     protected function closeSavePoints($oldDepth, $newDepth)
     {
@@ -85,45 +85,47 @@ class Connection
                 unset($this->savePoints[$depth]);
             }
         }
-        return $idx;
+
+        $operations = [];
+
+        // Collect the operations.
+        if (isset($idx)) {
+            end($this->operations);
+            $lastIdx = key($this->operations);
+            for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
+                if (isset($this->operations[$removeIdx])) {
+                    $operations[$removeIdx] = $this->operations[$removeIdx];
+                }
+            }
+            reset($this->operations);
+        }
+        return $operations;
     }
 
     /**
-     * Run commit on operations and remove them from the buffer, back to the index point specified.
+     * Run commit on operations and remove them from the buffer.
      *
-     * @param int $idx
-     *   Index to commit to.
+     * @param Operation[]
+     *   The operations to commit.
      */
-    protected function commitSavePoints($idx) {
-        // Perform the operations if any found.
-        end($this->operations);
-        $lastIdx = key($this->operations);
-        for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
-            if (isset($this->operations[$removeIdx])) {
-                $this->operations[$removeIdx]->commit($this);
-                $this->removeOperation($this->operations[$removeIdx]);
-            }
+    protected function commitOperations($operations) {
+        foreach ($operations as $operation) {
+            $operation->commit($this);
+            $this->removeOperation($operation);
         }
-        reset($this->operations);
     }
 
     /**
-     * Run rollback on operations and remove them from the buffer, back to the index point specified.
+     * Run commit on operations and remove them from the buffer.
      *
-     * @param int $idx
-     *   Index to rollback to.
+     * @param Operation[]
+     *   The operations to commit.
      */
-    protected function rollbackSavePoints($idx)
-    {
-        end($this->operations);
-        $lastIdx = key($this->operations);
-        for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
-            if (isset($this->operations[$removeIdx])) {
-                $this->operations[$removeIdx]->rollback($this);
-                $this->removeOperation($this->operations[$removeIdx]);
-            }
+    protected function rollbackOperations($operations) {
+        foreach ($operations as $operation) {
+            $operation->rollback($this);
+            $this->removeOperation($operation);
         }
-        reset($this->operations);
     }
 
     /**
@@ -154,12 +156,12 @@ class Connection
             throw new \RuntimeException('Trying to commit non-existant transaction.');
         }
 
-        // Remove savepoints to and acquire index of latest active savepoint.
-        $idx = $this->closeSavePoints($oldDepth, $this->depth);
+        // Collect operations and commit if applicable.
+        $operations = $this->closeSavePoints($oldDepth, $this->depth);
 
         // Is this a real commit.
-        if ($this->depth == 0 && isset($idx)) {
-            $this->commitSavePoints($idx);
+        if ($this->depth == 0 && $operations) {
+            $this->commitOperations($operations);
         }
     }
 
@@ -178,13 +180,9 @@ class Connection
             throw new \RuntimeException('Trying to rollback non-existant transaction.');
         }
 
-        // Remove savepoints to and acquire index of latest active savepoint.
-        $idx = $this->closeSavePoints($oldDepth, $this->depth);
-
-        // Remove operations up until latest active savepoint.
-        if (isset($idx)) {
-            $this->rollbackSavePoints($idx);
-        }
+        // Collect operations and rollback.
+        $operations = $this->closeSavePoints($oldDepth, $this->depth);
+        $this->rollbackOperations($operations);
     }
 
     /**
