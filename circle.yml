@@ -9,6 +9,9 @@ machine:
 
 dependencies:
   pre:
+    # Set PHP timezone.
+    - echo "date.timezone = Europe/Copenhagen" > /opt/circleci/php/$(phpenv global)/etc/conf.d/timezone.ini
+
     # Enable xdebug for test coverage.
     - sed -i 's/^;//' /opt/circleci/.phpenv/versions/$(phpenv global)/etc/conf.d/xdebug.ini
 
