@@ -108,7 +108,7 @@ class Connection
             $lastIdx = key($this->operations);
             for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
                 if (isset($this->operations[$removeIdx])) {
-                    $this->performOperation($this->operations[$removeIdx]);
+                    $this->operations[$removeIdx]->commit();
                     $this->removeOperation($this->operations[$removeIdx]);
                 }
             }
@@ -136,6 +136,7 @@ class Connection
             $lastIdx = key($this->operations);
             for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
                 if (isset($this->operations[$removeIdx])) {
+                    $this->operations[$removeIdx]->rollback();
                     $this->removeOperation($this->operations[$removeIdx]);
                 }
             }
@@ -149,7 +150,7 @@ class Connection
     public function addOperation(Operation $operation)
     {
         if ($this->depth <= 0) {
-            $operation->execute();
+            $operation->commit();
         } else {
             $idx = $this->idx;
             $this->idx++;
@@ -170,31 +171,36 @@ class Connection
     /**
      * {@inheritdoc}
      */
-    public function performOperation(Operation $operation)
-    {
-        $idx = $operation->idx($this);
-        return isset($this->operations[$idx]) ? $this->operations[$idx]->execute() : null;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function removeOperation(Operation $operation)
     {
         unset($this->operations[$operation->idx($this)]);
     }
 
     /**
-     * Short-hand notation for adding running code.
+     * Short-hand notation for adding code to be run on commit.
      *
      * @param callable $callback
      *   The code to run.
      *
      * @return Operation
      */
-    public function call(callable $callback)
+    public function onCommit(callable $callback)
     {
         return $this->addOperation((new Operation())
-            ->setCallback($callback));
+            ->onCommit($callback));
+    }
+
+    /**
+     * Short-hand notation for adding code to be run on rollback.
+     *
+     * @param callable $callback
+     *   The code to run.
+     *
+     * @return Operation
+     */
+    public function onRollback(callable $callback)
+    {
+        return $this->addOperation((new Operation())
+            ->onRollback($callback));
     }
 }

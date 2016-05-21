@@ -53,13 +53,12 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      * @dataProvider connectionDataProvider
      *
      * @covers \Gielfeldt\TransactionalPHP\Connection::addOperation
-     * @covers \Gielfeldt\TransactionalPHP\Connection::getOperation
      * @covers \Gielfeldt\TransactionalPHP\Connection::startTransaction
      */
     public function testAddOperation(Connection $connection)
     {
         $operation = new Operation();
-        $operation->setCallback(function () {
+        $operation->onCommit(function () {
             return 'testresult';
         });
         $connection->addOperation($operation);
@@ -74,29 +73,61 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test call.
+     * Test commit.
      *
      * @param Connection $connection
      *   The connection to perform tests on.
      *
      * @dataProvider connectionDataProvider
      *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::call
+     * @covers \Gielfeldt\TransactionalPHP\Connection::onCommit
+     * @covers \Gielfeldt\TransactionalPHP\Connection::hasOperation
      */
-    public function testCall(Connection $connection)
+    public function testOnCommit(Connection $connection)
     {
         $callback = function () {
             return 'testresult';
         };
-        $operation = $connection->call($callback);
+        $operation = $connection->onCommit($callback);
 
         $this->assertFalse($connection->hasOperation($operation), 'Operation was not properly added.');
 
         $connection->startTransaction();
-        $operation = $connection->call($callback);
+        $operation = $connection->onCommit($callback);
 
         $this->assertTrue($connection->hasOperation($operation), 'Operation was not properly added.');
-        $this->assertSame('testresult', $operation->execute(), 'Operation was not properly added.');
+        $connection->commitTransaction();
+        $check = $operation->getResult();
+        $this->assertSame('testresult', $check, 'Operation was not properly added.');
+    }
+
+    /**
+     * Test rollback.
+     *
+     * @param Connection $connection
+     *   The connection to perform tests on.
+     *
+     * @dataProvider connectionDataProvider
+     *
+     * @covers \Gielfeldt\TransactionalPHP\Connection::onRollback
+     * @covers \Gielfeldt\TransactionalPHP\Connection::hasOperation
+     */
+    public function testOnRollback(Connection $connection)
+    {
+        $callback = function () {
+            return 'testresult';
+        };
+        $operation = $connection->onRollback($callback);
+
+        $this->assertFalse($connection->hasOperation($operation), 'Operation was not properly added.');
+
+        $connection->startTransaction();
+        $operation = $connection->onRollback($callback);
+
+        $this->assertTrue($connection->hasOperation($operation), 'Operation was not properly added.');
+        $connection->rollbackTransaction();
+        $check = $operation->getResult();
+        $this->assertSame('testresult', $check, 'Operation was not properly added.');
     }
 
     /**
@@ -112,7 +143,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
     public function testRemoveOperation(Connection $connection)
     {
         $operation = new Operation();
-        $operation->setCallback(function () {
+        $operation->onCommit(function () {
             return 'testresult';
         });
 
@@ -122,30 +153,6 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
 
         $check = $connection->hasOperation($operation);
         $this->assertFalse($check, 'Operation was not properly removed.');
-    }
-
-    /**
-     * Test perform operation.
-     *
-     * @param Connection $connection
-     *   The connection to perform tests on.
-     *
-     * @dataProvider connectionDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::performOperation
-     */
-    public function testPerformOperation(Connection $connection)
-    {
-        $performed = false;
-        $operation = new Operation();
-        $operation->setCallback(function () use (&$performed) {
-            $performed = true;
-        });
-
-        $connection->startTransaction();
-        $idx = $connection->addOperation($operation);
-        $connection->performOperation($idx);
-        $this->assertTrue($performed, 'Operation was not properly performed.');
     }
 
     /**
@@ -161,27 +168,33 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      */
     public function testCommitTransaction(Connection $connection)
     {
-        $performed = false;
-
         $operation = new Operation();
-        $operation->setCallback(function () use (&$performed) {
-            $performed = true;
+        $operation->onCommit(function () use (&$committed) {
+            $committed = true;
+        });
+        $operation->onRollback(function () use (&$rolledback) {
+            $rolledback = true;
         });
 
+        $committed = false;
+        $rolledback = false;
         $connection->startTransaction();
         $connection->addOperation($operation);
         $connection->commitTransaction();
 
-        $this->assertTrue($performed, 'Operation was not performed.');
+        $this->assertTrue($committed, 'Commit was not performed.');
+        $this->assertFalse($rolledback, 'Rollback was performed.');
 
-        $performed = false;
+        $committed = false;
+        $rolledback = false;
         $connection->startTransaction();
         $connection->startTransaction();
         $connection->addOperation($operation);
         $connection->commitTransaction();
         $connection->commitTransaction();
 
-        $this->assertTrue($performed, 'Operation was not performed.');
+        $this->assertTrue($committed, 'Commit was not performed.');
+        $this->assertFalse($rolledback, 'Rollback was performed.');
     }
 
     /**
@@ -216,36 +229,44 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      */
     public function testRollbackTransaction(Connection $connection)
     {
-        $performed = false;
-
         $operation = new Operation();
-        $operation->setCallback(function () use (&$performed) {
-            $performed = true;
+        $operation->onCommit(function () use (&$committed) {
+            $committed = true;
+        });
+        $operation->onRollback(function () use (&$rolledback) {
+            $rolledback = true;
         });
 
+        $committed = false;
+        $rolledback = false;
         $connection->startTransaction();
         $connection->addOperation($operation);
         $connection->rollbackTransaction();
 
-        $this->assertFalse($performed, 'Operation was performed.');
+        $this->assertFalse($committed, 'Commit was performed.');
+        $this->assertTrue($rolledback, 'Rollback was not performed.');
 
-        $performed = false;
+        $committed = false;
+        $rolledback = false;
         $connection->startTransaction();
         $connection->startTransaction();
         $connection->addOperation($operation);
         $connection->rollbackTransaction();
         $connection->commitTransaction();
 
-        $this->assertFalse($performed, 'Operation was performed.');
+        $this->assertFalse($committed, 'Commit was performed.');
+        $this->assertTrue($rolledback, 'Rollback was not performed.');
 
-        $performed = false;
+        $committed = false;
+        $rolledback = false;
         $connection->startTransaction();
         $connection->startTransaction();
         $connection->addOperation($operation);
         $connection->commitTransaction();
         $connection->rollbackTransaction();
 
-        $this->assertFalse($performed, 'Operation was performed.');
+        $this->assertFalse($committed, 'Commit was performed.');
+        $this->assertTrue($rolledback, 'Rollback was not performed.');
     }
 
     /**

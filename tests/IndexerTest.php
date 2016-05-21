@@ -61,11 +61,11 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
     {
         $indexer = new Indexer($connection);
         $connection->startTransaction();
-        $indexer->index('dummy', $connection->call(function () {
+        $indexer->index('dummy', $connection->onCommit(function () {
         }));
 
         $operation = new Operation();
-        $operation->setCallback(function () {
+        $operation->onCommit(function () {
             return 'testresult';
         });
         $connection->addOperation($operation);

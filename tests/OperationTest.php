@@ -24,26 +24,65 @@ class OperationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test callback.
+     * Test commit.
      *
      * @param Operation $operation
      *   The operation to perform tests on.
      *
      * @dataProvider operationDataProvider
      *
-     * @covers \Gielfeldt\TransactionalPHP\Operation::setCallback
-     * @covers \Gielfeldt\TransactionalPHP\Operation::getCallback
+     * @covers \Gielfeldt\TransactionalPHP\Operation::onCommit
+     * @covers \Gielfeldt\TransactionalPHP\Operation::getCommitCallback
+     * @covers \Gielfeldt\TransactionalPHP\Operation::getResult
      */
-    public function testCallback(Operation $operation)
+    public function testCommit(Operation $operation)
     {
         $performed = false;
         $callback = function () use (&$performed) {
             $performed = true;
+            return 'performed';
         };
-        $operation->setCallback($callback);
+        $operation->onCommit($callback);
 
-        $check = $operation->getCallback();
+        $check = $operation->getCommitCallback();
         $this->assertSame($callback, $check, 'Correct callback was not set.');
+
+        $operation->commit();
+        $this->assertTrue($performed, 'Callback was not executed.');
+
+        $check = $operation->getResult();
+        $this->assertSame('performed', $check, 'Callback did not return proper result.');
+    }
+
+    /**
+     * Test rollback.
+     *
+     * @param Operation $operation
+     *   The operation to perform tests on.
+     *
+     * @dataProvider operationDataProvider
+     *
+     * @covers \Gielfeldt\TransactionalPHP\Operation::onRollback
+     * @covers \Gielfeldt\TransactionalPHP\Operation::getRollbackCallback
+     * @covers \Gielfeldt\TransactionalPHP\Operation::getResult
+     */
+    public function testRollback(Operation $operation)
+    {
+        $performed = false;
+        $callback = function () use (&$performed) {
+            $performed = true;
+            return 'performed';
+        };
+        $operation->onRollback($callback);
+
+        $check = $operation->getRollbackCallback();
+        $this->assertSame($callback, $check, 'Correct callback was not set.');
+
+        $operation->rollback();
+        $this->assertTrue($performed, 'Callback was not executed.');
+
+        $check = $operation->getResult();
+        $this->assertSame('performed', $check, 'Callback did not return proper result.');
     }
 
     /**
@@ -66,28 +105,6 @@ class OperationTest extends \PHPUnit_Framework_TestCase
 
         $check = $operation->getValue();
         $this->assertSame('myvalue', $check, 'Correct value was not set.');
-    }
-
-    /**
-     * Test execute.
-     *
-     * @param Operation $operation
-     *   The operation to perform tests on.
-     *
-     * @dataProvider operationDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Operation::execute
-     */
-    public function testExecute(Operation $operation)
-    {
-        $performed = false;
-        $callback = function () use (&$performed) {
-            $performed = true;
-        };
-        $operation->setCallback($callback);
-
-        $operation->execute();
-        $this->assertTrue($performed, 'Callback was not executed.');
     }
 
     /**

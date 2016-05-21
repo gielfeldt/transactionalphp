@@ -17,7 +17,12 @@ class Operation
     /**
      * @var callable
      */
-    protected $callback;
+    protected $commit;
+
+    /**
+     * @var callable
+     */
+    protected $rollback;
 
     /**
      * @var mixed
@@ -25,27 +30,56 @@ class Operation
     protected $value;
 
     /**
-     * Set callback.
+     * @var mixed
+     */
+    protected $result;
+
+    /**
+     * Set commit callback.
      *
      * @param callable $callback
-     *   The callback.
+     *   The callback when this operation is committed.
      *
      * @return $this
      */
-    public function setCallback(callable $callback)
+    public function onCommit(callable $callback)
     {
-        $this->callback = $callback;
+        $this->commit = $callback;
         return $this;
     }
 
     /**
-     * Get callback.
+     * Set rollback callback.
+     *
+     * @param callable $callback
+     *   The callback when this operation is rolled back.
+     *
+     * @return $this
+     */
+    public function onRollback(callable $callback)
+    {
+        $this->rollback = $callback;
+        return $this;
+    }
+
+    /**
+     * Get commit callback.
      *
      * @return callable|null
      */
-    public function getCallback()
+    public function getCommitCallback()
     {
-        return $this->callback;
+        return $this->commit;
+    }
+
+    /**
+     * Get rollback callback.
+     *
+     * @return callable|null
+     */
+    public function getRollbackCallback()
+    {
+        return $this->rollback;
     }
 
     /**
@@ -68,6 +102,16 @@ class Operation
     public function getValue()
     {
         return is_callable($this->value) ? call_user_func($this->value) : $this->value;
+    }
+
+    /**
+     * Get result from callback.
+     *
+     * @return mixed
+     */
+    public function getResult()
+    {
+        return $this->result;
     }
 
     /**
@@ -99,12 +143,22 @@ class Operation
     }
 
     /**
-     * Execute operation.
+     * Execute commit operation.
      *
      * @return mixed
      */
-    public function execute()
+    public function commit()
     {
-        return call_user_func($this->callback);
+        return $this->result = $this->commit ? call_user_func($this->commit) : NULL;
+    }
+
+    /**
+     * Execute rollback operation.
+     *
+     * @return mixed
+     */
+    public function rollback()
+    {
+        return $this->result = $this->rollback ? call_user_func($this->rollback) : NULL;
     }
 }
