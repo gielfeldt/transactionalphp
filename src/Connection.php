@@ -107,8 +107,10 @@ class Connection
             end($this->operations);
             $lastIdx = key($this->operations);
             for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
-                $this->performOperation($removeIdx);
-                $this->removeOperation($removeIdx);
+                if (isset($this->operations[$removeIdx])) {
+                    $this->performOperation($this->operations[$removeIdx]);
+                    $this->removeOperation($this->operations[$removeIdx]);
+                }
             }
             $this->idx = $idx;
         }
@@ -133,7 +135,9 @@ class Connection
             end($this->operations);
             $lastIdx = key($this->operations);
             for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
-                $this->removeOperation($removeIdx);
+                if (isset($this->operations[$removeIdx])) {
+                    $this->removeOperation($this->operations[$removeIdx]);
+                }
             }
             reset($this->operations);
         }
@@ -145,38 +149,39 @@ class Connection
     public function addOperation(Operation $operation)
     {
         if ($this->depth <= 0) {
-            return $operation->execute();
+            $operation->execute();
+        } else {
+            $idx = $this->idx;
+            $this->idx++;
+            $this->operations[$idx] = $operation;
+            $operation->setIdx($this, $idx);
         }
-
-        $idx = $this->idx;
-        $this->idx++;
-        $this->operations[$idx] = $operation;
-        $operation->setIdx($this, $idx);
-        return $idx;
+        return $operation;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getOperation($idx)
+    public function hasOperation(Operation $operation)
     {
-        return isset($this->operations[$idx]) ? $this->operations[$idx] : false;
+        return isset($this->operations[$operation->idx($this)]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function performOperation($idx)
+    public function performOperation(Operation $operation)
     {
+        $idx = $operation->idx($this);
         return isset($this->operations[$idx]) ? $this->operations[$idx]->execute() : null;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function removeOperation($idx)
+    public function removeOperation(Operation $operation)
     {
-        unset($this->operations[$idx]);
+        unset($this->operations[$operation->idx($this)]);
     }
 
     /**
@@ -185,7 +190,7 @@ class Connection
      * @param callable $callback
      *   The code to run.
      *
-     * @return int|mixed
+     * @return Operation
      */
     public function call(callable $callback)
     {

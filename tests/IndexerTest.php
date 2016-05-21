@@ -61,6 +61,9 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
     {
         $indexer = new Indexer($connection);
         $connection->startTransaction();
+        $indexer->index('dummy', $connection->call(function () {
+        }));
+
         $operation = new Operation();
         $operation->setCallback(function () {
             return 'testresult';
@@ -69,6 +72,6 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
         $indexer->index('test1', $operation);
         $check = $indexer->lookup('test1');
 
-        $this->assertSame([$operation], $check, 'Operations not found during lookup.');
+        $this->assertSame([$operation->idx($connection) => $operation], $check, 'Operations not found during lookup.');
     }
 }

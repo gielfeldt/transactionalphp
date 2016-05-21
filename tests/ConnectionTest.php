@@ -62,15 +62,15 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         $operation->setCallback(function () {
             return 'testresult';
         });
-        $check = $connection->addOperation($operation);
+        $connection->addOperation($operation);
 
-        $this->assertSame('testresult', $check, 'Operation was not properly added.');
+        $this->assertNull($operation->idx($connection), 'Operation was not properly added.');
+        #var_dump($operation->idx($connection));
 
         $connection->startTransaction();
-        $idx = $connection->addOperation($operation);
-        $check = $connection->getOperation($idx);
+        $connection->addOperation($operation);
 
-        $this->assertSame($operation, $check, 'Operation was not properly added.');
+        $this->assertNotNull($operation->idx($connection), 'Operation was not properly added.');
     }
 
     /**
@@ -88,15 +88,15 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         $callback = function () {
             return 'testresult';
         };
-        $check = $connection->call($callback);
+        $operation = $connection->call($callback);
 
-        $this->assertSame('testresult', $check, 'Operation was not properly added.');
+        $this->assertFalse($connection->hasOperation($operation), 'Operation was not properly added.');
 
         $connection->startTransaction();
-        $idx = $connection->call($callback);
-        $check = $connection->getOperation($idx)->execute();
+        $operation = $connection->call($callback);
 
-        $this->assertSame('testresult', $check, 'Operation was not properly added.');
+        $this->assertTrue($connection->hasOperation($operation), 'Operation was not properly added.');
+        $this->assertSame('testresult', $operation->execute(), 'Operation was not properly added.');
     }
 
     /**
@@ -117,10 +117,10 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         });
 
         $connection->startTransaction();
-        $idx = $connection->addOperation($operation);
-        $connection->removeOperation($idx);
+        $connection->addOperation($operation);
+        $connection->removeOperation($operation);
 
-        $check = $connection->getOperation($idx);
+        $check = $connection->hasOperation($operation);
         $this->assertFalse($check, 'Operation was not properly removed.');
     }
 

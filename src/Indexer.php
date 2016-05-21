@@ -34,7 +34,8 @@ class Indexer
      *
      * @return Connection
      */
-    public function getConnection() {
+    public function getConnection()
+    {
         return $this->connection;
     }
 
