@@ -145,20 +145,26 @@ class Operation
     /**
      * Execute commit operation.
      *
+     * @param Connection $connection
+     *   The connection to run this operation on.
+     *
      * @return mixed
      */
-    public function commit()
+    public function commit($connection = null)
     {
-        return $this->result = $this->commit ? call_user_func($this->commit) : NULL;
+        return $this->result = $this->commit ? call_user_func($this->commit, $this, $connection) : null;
     }
 
     /**
      * Execute rollback operation.
      *
+     * @param Connection $connection
+     *   The connection to run this operation on.
+     *
      * @return mixed
      */
-    public function rollback()
+    public function rollback($connection = null)
     {
-        return $this->result = $this->rollback ? call_user_func($this->rollback) : NULL;
+        return $this->result = $this->rollback ? call_user_func($this->rollback, $this, $connection) : null;
     }
 }

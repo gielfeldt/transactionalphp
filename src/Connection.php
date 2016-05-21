@@ -56,6 +56,16 @@ class Connection
     }
 
     /**
+     * Get current depth.
+     *
+     * @return int
+     */
+    public function getDepth()
+    {
+        return $this->depth;
+    }
+
+    /**
      * Remove savepoints to and acquire index of latest active savepoint.
      *
      * @param int $oldDepth
@@ -108,12 +118,11 @@ class Connection
             $lastIdx = key($this->operations);
             for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
                 if (isset($this->operations[$removeIdx])) {
-                    $this->operations[$removeIdx]->commit();
+                    $this->operations[$removeIdx]->commit($this);
                     $this->removeOperation($this->operations[$removeIdx]);
                 }
             }
             reset($this->operations);
-            $this->idx = $idx;
         }
     }
 
@@ -137,12 +146,11 @@ class Connection
             $lastIdx = key($this->operations);
             for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
                 if (isset($this->operations[$removeIdx])) {
-                    $this->operations[$removeIdx]->rollback();
+                    $this->operations[$removeIdx]->rollback($this);
                     $this->removeOperation($this->operations[$removeIdx]);
                 }
             }
             reset($this->operations);
-            $this->idx = $idx;
         }
     }
 
