@@ -131,6 +131,27 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test add value.
+     *
+     * @param Connection $connection
+     *   The connection to perform tests on.
+     *
+     * @dataProvider connectionDataProvider
+     *
+     * @covers \Gielfeldt\TransactionalPHP\Connection::addValue
+     */
+    public function testAddValue(Connection $connection)
+    {
+        $callback = function () {
+            return 'testresult';
+        };
+        $operation = $connection->addValue($callback);
+
+        $check = $operation->getValue();
+        $this->assertSame('testresult', $check, 'Operation was not properly added.');
+    }
+
+    /**
      * Test remove operation.
      *
      * @param Connection $connection

@@ -182,7 +182,7 @@ class Connection
      * Short-hand notation for adding code to be run on commit.
      *
      * @param callable $callback
-     *   The code to run.
+     *   The code to run on commit.
      *
      * @return Operation
      */
@@ -196,7 +196,7 @@ class Connection
      * Short-hand notation for adding code to be run on rollback.
      *
      * @param callable $callback
-     *   The code to run.
+     *   The code to run on rollback.
      *
      * @return Operation
      */
@@ -204,5 +204,19 @@ class Connection
     {
         return $this->addOperation((new Operation())
             ->onRollback($callback));
+    }
+
+    /**
+     * Short-hand notation for adding code to be run on rollback.
+     *
+     * @param mixed $value
+     *   The value to add.
+     *
+     * @return Operation
+     */
+    public function addValue($value)
+    {
+        return $this->addOperation((new Operation())
+            ->setValue($value));
     }
 }

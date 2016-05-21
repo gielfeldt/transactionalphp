@@ -61,8 +61,10 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
     {
         $indexer = new Indexer($connection);
         $connection->startTransaction();
-        $indexer->index('dummy', $connection->onCommit(function () {
-        }));
+        $indexer->index('value', $connection->addValue('testvalue'));
+
+        $check = $indexer->lookup('value');
+        $this->assertSame('testvalue', reset($check)->getValue(), 'Operations not found during lookup.');
 
         $operation = new Operation();
         $operation->onCommit(function () {
@@ -70,8 +72,8 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
         });
         $connection->addOperation($operation);
         $indexer->index('test1', $operation);
-        $check = $indexer->lookup('test1');
 
+        $check = $indexer->lookup('test1');
         $this->assertSame([$operation->idx($connection) => $operation], $check, 'Operations not found during lookup.');
     }
 }
