@@ -70,7 +70,7 @@ class Connection
      *
      * @param int $oldDepth
      *   The old depth.
-     * @param $newDepth
+     * @param int $newDepth
      *   The new depth.
      *
      * @return Operation[]
@@ -105,7 +105,7 @@ class Connection
     /**
      * Run commit on operations and remove them from the buffer.
      *
-     * @param Operation[]
+     * @param Operation[] $operations
      *   The operations to commit.
      */
     protected function commitOperations($operations) {
@@ -118,7 +118,7 @@ class Connection
     /**
      * Run commit on operations and remove them from the buffer.
      *
-     * @param Operation[]
+     * @param Operation[] $operations
      *   The operations to commit.
      */
     protected function rollbackOperations($operations) {
@@ -160,7 +160,7 @@ class Connection
         $operations = $this->closeSavePoints($oldDepth, $this->depth);
 
         // Is this a real commit.
-        if ($this->depth == 0 && $operations) {
+        if ($this->depth == 0 && !empty($operations)) {
             $this->commitOperations($operations);
         }
     }
