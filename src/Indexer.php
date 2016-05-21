@@ -49,7 +49,7 @@ class Indexer
     public function index($key, Operation $operation = null)
     {
         if ($operation) {
-            $this->index[$key][] = $operation;
+            $this->index[$key][$operation->idx($this->connection)] = $operation;
         }
     }
 
