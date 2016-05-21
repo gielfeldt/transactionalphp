@@ -76,7 +76,7 @@ class Connection
      * @return int|null
      *   The last index, if found.
      */
-    public function closeSavepoints($oldDepth, $newDepth)
+    protected function closeSavePoints($oldDepth, $newDepth)
     {
         $idx = null;
         for ($depth = $newDepth + 1; $depth <= $oldDepth; $depth++) {
@@ -109,7 +109,7 @@ class Connection
         }
 
         // Remove savepoints to and acquire index of latest active savepoint.
-        $idx = $this->closeSavepoints($oldDepth, $this->depth);
+        $idx = $this->closeSavePoints($oldDepth, $this->depth);
 
         // Is this a real commit.
         if ($this->depth == 0 && isset($idx)) {
@@ -138,7 +138,7 @@ class Connection
         }
 
         // Remove savepoints to and acquire index of latest active savepoint.
-        $idx = $this->closeSavepoints($oldDepth, $this->depth);
+        $idx = $this->closeSavePoints($oldDepth, $this->depth);
 
         // Remove operations up until latest active savepoint.
         if (isset($idx)) {
@@ -161,12 +161,12 @@ class Connection
     {
         if ($this->depth <= 0) {
             $operation->commit();
-        } else {
-            $idx = $this->idx;
-            $this->idx++;
-            $this->operations[$idx] = $operation;
-            $operation->setIdx($this, $idx);
+            return $operation;
         }
+        $idx = $this->idx;
+        $this->idx++;
+        $this->operations[$idx] = $operation;
+        $operation->setIdx($this, $idx);
         return $operation;
     }
 
