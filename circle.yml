@@ -3,7 +3,7 @@ machine:
     # Add composer global bin dir to path.
     PATH: $HOME/.composer/vendor/bin:$PATH
   php:
-    version: 7.0.4
+    version: 5.5.31
 
 dependencies:
   pre:
