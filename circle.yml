@@ -1,4 +1,6 @@
 machine:
+  timezone:
+    Europe/Copenhagen
   environment:
     # Add composer global bin dir to path.
     PATH: $HOME/.composer/vendor/bin:$PATH
