@@ -30,6 +30,15 @@ class Indexer
     }
 
     /**
+     * Get connection.
+     *
+     * @return Connection
+     */
+    public function getConnection() {
+        return $this->connection;
+    }
+
+    /**
      * Index operation.
      *
      * @param string $key

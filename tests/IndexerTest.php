@@ -41,6 +41,9 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
             $indexer,
             'Indexer was not constructed properly.'
         );
+
+        $check = $indexer->getConnection();
+        $this->assertSame($connection, $check, 'Correct connection not set on indexer.');
     }
 
     /**
