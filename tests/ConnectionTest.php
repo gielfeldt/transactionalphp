@@ -308,4 +308,31 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         $connection->rollbackTransaction();
         $connection->rollbackTransaction();
     }
+
+    /**
+     * Test transaction depth.
+     *
+     * @param Connection $connection
+     *   The connection to perform tests on.
+     *
+     * @dataProvider connectionDataProvider
+     *
+     * @covers \Gielfeldt\TransactionalPHP\Connection::getDepth
+     */
+    public function testDepth(Connection $connection)
+    {
+        $this->assertEquals(0, $connection->getDepth(), 'Depth was not correct');
+
+        $connection->startTransaction();
+        $this->assertEquals(1, $connection->getDepth(), 'Depth was not correct');
+
+        $connection->startTransaction();
+        $this->assertEquals(2, $connection->getDepth(), 'Depth was not correct');
+
+        $connection->rollbackTransaction();
+        $this->assertEquals(1, $connection->getDepth(), 'Depth was not correct');
+
+        $connection->commitTransaction();
+        $this->assertEquals(0, $connection->getDepth(), 'Depth was not correct');
+    }
 }
