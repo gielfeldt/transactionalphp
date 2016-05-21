@@ -89,7 +89,49 @@ class Connection
     }
 
     /**
-     * {@inheritdoc}
+     * Run commit on operations and remove them from the buffer, back to the index point specified.
+     *
+     * @param int $idx
+     *   Index to commit to.
+     */
+    protected function commitSavePoints($idx) {
+        // Perform the operations if any found.
+        end($this->operations);
+        $lastIdx = key($this->operations);
+        for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
+            if (isset($this->operations[$removeIdx])) {
+                $this->operations[$removeIdx]->commit($this);
+                $this->removeOperation($this->operations[$removeIdx]);
+            }
+        }
+        reset($this->operations);
+    }
+
+    /**
+     * Run rollback on operations and remove them from the buffer, back to the index point specified.
+     *
+     * @param int $idx
+     *   Index to rollback to.
+     */
+    protected function rollbackSavePoints($idx)
+    {
+        end($this->operations);
+        $lastIdx = key($this->operations);
+        for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
+            if (isset($this->operations[$removeIdx])) {
+                $this->operations[$removeIdx]->rollback($this);
+                $this->removeOperation($this->operations[$removeIdx]);
+            }
+        }
+        reset($this->operations);
+    }
+
+    /**
+     * Start transaction.
+     *
+     * @param int $newDepth
+     *   (optional) If specified, use as new depth, otherwise increment current depth.
+     *
      */
     public function startTransaction($newDepth = null)
     {
@@ -98,7 +140,11 @@ class Connection
     }
 
     /**
-     * {@inheritdoc}
+     * Commit transaction.
+     *
+     * @param int $newDepth
+     *   (optional) If specified, use as new depth, otherwise decrement current depth.
+     *
      */
     public function commitTransaction($newDepth = null)
     {
@@ -113,21 +159,16 @@ class Connection
 
         // Is this a real commit.
         if ($this->depth == 0 && isset($idx)) {
-            // Perform the operations if any found.
-            end($this->operations);
-            $lastIdx = key($this->operations);
-            for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
-                if (isset($this->operations[$removeIdx])) {
-                    $this->operations[$removeIdx]->commit($this);
-                    $this->removeOperation($this->operations[$removeIdx]);
-                }
-            }
-            reset($this->operations);
+            $this->commitSavePoints($idx);
         }
     }
 
     /**
-     * {@inheritdoc}
+     * Rollback transaction.
+     *
+     * @param int $newDepth
+     *   (optional) If specified, use as new depth, otherwise decrement current depth.
+     *
      */
     public function rollbackTransaction($newDepth = null)
     {
@@ -142,20 +183,18 @@ class Connection
 
         // Remove operations up until latest active savepoint.
         if (isset($idx)) {
-            end($this->operations);
-            $lastIdx = key($this->operations);
-            for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
-                if (isset($this->operations[$removeIdx])) {
-                    $this->operations[$removeIdx]->rollback($this);
-                    $this->removeOperation($this->operations[$removeIdx]);
-                }
-            }
-            reset($this->operations);
+            $this->rollbackSavePoints($idx);
         }
     }
 
     /**
-     * {@inheritdoc}
+     * Add operation.
+     *
+     * @param Operation $operation
+     *   The operation to add to the connection.
+     *
+     * @return Operation
+     *   The operation added.
      */
     public function addOperation(Operation $operation)
     {
@@ -171,7 +210,13 @@ class Connection
     }
 
     /**
-     * {@inheritdoc}
+     * Check if the connection has an operation.
+     *
+     * @param Operation $operation
+     *   The operation to check for.
+     *
+     * @return bool
+     *   TRUE if the operation exists.
      */
     public function hasOperation(Operation $operation)
     {
@@ -179,7 +224,10 @@ class Connection
     }
 
     /**
-     * {@inheritdoc}
+     * Remove operation.
+     *
+     * @param Operation $operation
+     *   The operation to remove from the connection.
      */
     public function removeOperation(Operation $operation)
     {
@@ -193,6 +241,7 @@ class Connection
      *   The code to run on commit.
      *
      * @return Operation
+     *   The operation created.
      */
     public function onCommit(callable $callback)
     {
@@ -207,6 +256,7 @@ class Connection
      *   The code to run on rollback.
      *
      * @return Operation
+     *   The operation created.
      */
     public function onRollback(callable $callback)
     {
@@ -221,6 +271,7 @@ class Connection
      *   The value to add.
      *
      * @return Operation
+     *   The operation created.
      */
     public function addValue($value)
     {
