@@ -16,7 +16,7 @@ dependencies:
     - sed -i 's/^;//' /opt/circleci/.phpenv/versions/$(phpenv global)/etc/conf.d/xdebug.ini
 
     # Install test reporter for codeclimate.
-    - composer --no-interaction require codeclimate/php-test-reporter:dev-master
+    - composer --no-interaction require codeclimate/php-test-reporter:v0.3.2
 
     # Install test reporter for scrutinizer.
     - wget https://scrutinizer-ci.com/ocular.phar
