@@ -112,6 +112,7 @@ class Connection
                     $this->removeOperation($this->operations[$removeIdx]);
                 }
             }
+            reset($this->operations);
             $this->idx = $idx;
         }
     }
@@ -141,6 +142,7 @@ class Connection
                 }
             }
             reset($this->operations);
+            $this->idx = $idx;
         }
     }
 
