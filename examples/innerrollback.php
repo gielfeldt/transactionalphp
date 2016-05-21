@@ -13,7 +13,7 @@ $connection = new Connection();
 $connection->startTransaction();
 
 $connection->addOperation((new Operation())
-    ->setCallback(function() {
+    ->onCommit(function() {
         // Here I will do my stuff.
         print "THIS WILL BE PRINTED, BECAUSE THIS WILL BE COMMITTED\n";
     }));
@@ -22,7 +22,7 @@ $connection->addOperation((new Operation())
 $connection->startTransaction();
 
 $connection->addOperation((new Operation())
-    ->setCallback(function() {
+    ->onCommit(function() {
         // Here I will do my stuff.
         print "THIS WILL NOT BE PRINTED, BECAUSE THIS WILL BE ROLLED BACK\n";
     }));
