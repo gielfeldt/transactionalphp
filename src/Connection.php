@@ -108,7 +108,8 @@ class Connection
      * @param Operation[] $operations
      *   The operations to commit.
      */
-    protected function commitOperations($operations) {
+    protected function commitOperations($operations)
+    {
         foreach ($operations as $operation) {
             $operation->commit($this);
             $this->removeOperation($operation);
@@ -121,7 +122,8 @@ class Connection
      * @param Operation[] $operations
      *   The operations to commit.
      */
-    protected function rollbackOperations($operations) {
+    protected function rollbackOperations($operations)
+    {
         foreach ($operations as $operation) {
             $operation->rollback($this);
             $this->removeOperation($operation);
