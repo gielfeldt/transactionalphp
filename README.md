@@ -50,14 +50,14 @@ $connection = new Connection();
 // Start outer transaction.
 $connection->startTransaction();
 
-$connection->onCommit(function() {
+$connection->onCommit(function () {
     print "THIS WILL BE PRINTED, BECAUSE THIS WILL BE COMMITTED\n";
 });
 
 // Start inner transaction.
 $connection->startTransaction();
 
-$connection->onCommit(function() {
+$connection->onCommit(function () {
     print "THIS WILL NOT BE PRINTED, BECAUSE THIS WILL BE ROLLED BACK\n";
 });
 
@@ -81,10 +81,10 @@ use Gielfeldt\TransactionalPHP\Operation;
 $connection = new Connection();
 
 $operation = new Operation();
-$operation->onCommit(function() {
+$operation->onCommit(function () {
     print "THIS WILL BE PRINTED IMMEDIATELY, BECAUSE NO TRANSACTION HAS BEGUN\n";
 })
-->onRollback(function() {
+->onRollback(function () {
     print "THIS WILL NEVER BE PRINTED, BECAUSE NO TRANSACTION HAS BEGUN\n";
 });
 $connection->addOperation($operation);
@@ -93,10 +93,10 @@ $connection->addOperation($operation);
 $connection->startTransaction();
 
 $operation = new Operation();
-$operation->onCommit(function() {
+$operation->onCommit(function () {
     print "THIS WILL BE PRINTED, BECAUSE THIS WILL BE COMMITTED\n";
 })
-->onRollback(function() {
+->onRollback(function () {
     print "THIS WILL NEVER BE PRINTED, BECAUSE THIS WILL BE COMMITTED\n";
 });
 $connection->addOperation($operation);
@@ -105,10 +105,10 @@ $connection->addOperation($operation);
 $connection->startTransaction();
 
 $operation = new Operation();
-$operation->onCommit(function() {
+$operation->onCommit(function () {
     print "THIS WILL NOT BE PRINTED, BECAUSE THIS WILL BE ROLLED BACK\n";
 })
-->onRollback(function() {
+->onRollback(function () {
     print "THIS WILL BE PRINTED, BECAUSE THIS WILL BE ROLLED BACK\n";
 });
 $connection->addOperation($operation);
@@ -135,10 +135,10 @@ $connection = new Connection();
 $indexer = new Indexer($connection);
 
 $operation = (new Operation())
-    ->onCommit(function() {
+    ->onCommit(function () {
         print "THIS WILL BE PRINTED IMMEDIATELY, BECAUSE NO TRANSACTION HAS BEGUN\n";
     })
-    ->onRollback(function() {
+    ->onRollback(function () {
         print "THIS WILL NEVER BE PRINTED, BECAUSE NO TRANSACTION HAS BEGUN\n";
     })
     ->onBuffer(function ($operation) use ($indexer) {
@@ -152,10 +152,10 @@ $connection->addOperation($operation);
 $connection->startTransaction();
 
 $operation = (new Operation())
-    ->onCommit(function() {
+    ->onCommit(function () {
         print "THIS WILL BE PRINTED, BECAUSE THIS WILL BE COMMITTED\n";
     })
-    ->onRollback(function() {
+    ->onRollback(function () {
         print "THIS WILL NEVER BE PRINTED, BECAUSE THIS WILL BE COMMITTED\n";
     })
     ->onBuffer(function ($operation) use ($indexer) {
@@ -169,10 +169,10 @@ $connection->addOperation($operation);
 $connection->startTransaction();
 
 $operation = (new Operation())
-    ->onCommit(function() {
+    ->onCommit(function () {
         print "THIS WILL NOT BE PRINTED, BECAUSE THIS WILL BE ROLLED BACK\n";
     })
-    ->onRollback(function() {
+    ->onRollback(function () {
         print "THIS WILL BE PRINTED, BECAUSE THIS WILL BE ROLLED BACK\n";
     })
     ->onBuffer(function ($operation) use ($indexer) {
@@ -183,10 +183,10 @@ $operation = (new Operation())
 $connection->addOperation($operation);
 
 $operation = (new Operation())
-    ->onCommit(function() {
+    ->onCommit(function () {
         print "THIS WILL NOT BE PRINTED, BECAUSE THIS WILL BE ROLLED BACK - second\n";
     })
-    ->onRollback(function() {
+    ->onRollback(function () {
         print "THIS WILL BE PRINTED, BECAUSE THIS WILL BE ROLLED BACK - second\n";
     })
     ->onBuffer(function ($operation) use ($indexer) {

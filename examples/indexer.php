@@ -12,10 +12,10 @@ $connection = new Connection();
 $indexer = new Indexer($connection);
 
 $operation = (new Operation())
-    ->onCommit(function() {
+    ->onCommit(function () {
         print "THIS WILL BE PRINTED IMMEDIATELY, BECAUSE NO TRANSACTION HAS BEGUN\n";
     })
-    ->onRollback(function() {
+    ->onRollback(function () {
         print "THIS WILL NEVER BE PRINTED, BECAUSE NO TRANSACTION HAS BEGUN\n";
     })
     ->onBuffer(function ($operation) use ($indexer) {
@@ -29,10 +29,10 @@ $connection->addOperation($operation);
 $connection->startTransaction();
 
 $operation = (new Operation())
-    ->onCommit(function() {
+    ->onCommit(function () {
         print "THIS WILL BE PRINTED, BECAUSE THIS WILL BE COMMITTED\n";
     })
-    ->onRollback(function() {
+    ->onRollback(function () {
         print "THIS WILL NEVER BE PRINTED, BECAUSE THIS WILL BE COMMITTED\n";
     })
     ->onBuffer(function ($operation) use ($indexer) {
@@ -46,10 +46,10 @@ $connection->addOperation($operation);
 $connection->startTransaction();
 
 $operation = (new Operation())
-    ->onCommit(function() {
+    ->onCommit(function () {
         print "THIS WILL NOT BE PRINTED, BECAUSE THIS WILL BE ROLLED BACK\n";
     })
-    ->onRollback(function() {
+    ->onRollback(function () {
         print "THIS WILL BE PRINTED, BECAUSE THIS WILL BE ROLLED BACK\n";
     })
     ->onBuffer(function ($operation) use ($indexer) {
@@ -60,10 +60,10 @@ $operation = (new Operation())
 $connection->addOperation($operation);
 
 $operation = (new Operation())
-    ->onCommit(function() {
+    ->onCommit(function () {
         print "THIS WILL NOT BE PRINTED, BECAUSE THIS WILL BE ROLLED BACK - second\n";
     })
-    ->onRollback(function() {
+    ->onRollback(function () {
         print "THIS WILL BE PRINTED, BECAUSE THIS WILL BE ROLLED BACK - second\n";
     })
     ->onBuffer(function ($operation) use ($indexer) {
