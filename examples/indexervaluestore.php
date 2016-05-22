@@ -6,7 +6,6 @@ require 'vendor/autoload.php';
 
 use Gielfeldt\TransactionalPHP\Connection;
 use Gielfeldt\TransactionalPHP\Indexer;
-use Gielfeldt\TransactionalPHP\Operation;
 
 $connection = new Connection();
 $indexer = new Indexer($connection);
@@ -53,6 +52,10 @@ foreach ($indexer->lookup('test1') as $operation) {
 foreach ($indexer->lookup('test2') as $operation) {
     print "Looked up test2 - found: " . $operation->getValue(). "\n";
 }
+
+// Easy values lookup.
+var_dump($indexer->lookupValues('test1'));
+var_dump($indexer->lookupValues('test2'));
 
 // Commit inner transaction.
 $connection->commitTransaction();

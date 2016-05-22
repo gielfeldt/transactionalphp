@@ -12,7 +12,7 @@ class Operation
     /**
      * The index in the buffer, keyed by connection id.
      *
-     * @var string[]
+     * @var int[]
      */
     protected $idx;
 

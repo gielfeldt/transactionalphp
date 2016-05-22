@@ -10,11 +10,15 @@ namespace Gielfeldt\TransactionalPHP;
 class Indexer
 {
     /**
-     * @var int[]
+     * Operations indexed by key and operation index.
+
+     * @var Operation[][]
      */
     protected $index = [];
 
     /**
+     * The connection used by this indexer.
+     *
      * @var Connection
      */
     protected $connection;
@@ -43,7 +47,7 @@ class Indexer
      * Index operation.
      *
      * @param string $key
-     *   The key to index undeer.
+     *   The key to index under.
      * @param Operation $operation
      *   The operation to index.
      *
@@ -67,7 +71,7 @@ class Indexer
      * De-index operation.
      *
      * @param string $key
-     *   The key to index undeer.
+     *   The key to index under.
      * @param Operation $operation
      *   The operation to index.
      *
@@ -86,11 +90,31 @@ class Indexer
      * @param string $key
      *   The key to look up.
      *
-     * @return array
-     *   Operations.
+     * @return Operation[]
+     *   Operations keyed by operation index.
      */
     public function lookup($key)
     {
         return isset($this->index[$key]) ? $this->index[$key] : [];
+    }
+
+    /**
+     * Lookup operation values.
+     *
+     * @param string $key
+     *   The key to look up.
+     *
+     * @return array
+     *   Values keyed by operation index.
+     */
+    public function lookupValues($key)
+    {
+        $values = [];
+        if (isset($this->index[$key])) {
+            foreach ($this->index[$key] as $operation) {
+                $values[$operation->idx($this->connection)] = $operation->getValue();
+            }
+        }
+        return $values;
     }
 }

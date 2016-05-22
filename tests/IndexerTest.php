@@ -123,7 +123,11 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
         $connection->rollbackTransaction();
 
         $check = $indexer->lookup('test1');
-        $this->assertSame([$operation1->idx($connection) => $operation1], $check, 'Operations not found during lookup.');
+        $this->assertSame(
+            [$operation1->idx($connection) => $operation1],
+            $check,
+            'Operations not found during lookup.'
+        );
 
         $check = $indexer->lookup('test2');
         $this->assertSame([], $check, 'Operations found during lookup.');
@@ -131,5 +135,33 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
         $connection->commitTransaction();
         $check = $indexer->lookup('test1');
         $this->assertSame([], $check, 'Operations found during lookup.');
+    }
+
+    /**
+     * Test lookup values.
+     *
+     * @param Connection $connection
+     *   The connection to perform tests on.
+     *
+     * @dataProvider connectionDataProvider
+     *
+     * @covers \Gielfeldt\TransactionalPHP\Indexer::index
+     * @covers \Gielfeldt\TransactionalPHP\Indexer::lookupValues
+     */
+    public function testLookupValues(Connection $connection)
+    {
+        $indexer = new Indexer($connection);
+        $connection->startTransaction();
+        $operation1 = $connection->addValue('value1');
+        $operation2 = $connection->addValue('value2');
+        $expected = [
+            $operation1->idx($connection) => 'value1',
+            $operation2->idx($connection) => 'value2',
+        ];
+        $indexer->index('test1', $operation1);
+        $indexer->index('test1', $operation2);
+
+        $check = $indexer->lookupValues('test1');
+        $this->assertSame($expected, $check, 'Operations not found during lookup.');
     }
 }
