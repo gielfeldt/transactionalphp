@@ -54,6 +54,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *
      * @covers \Gielfeldt\TransactionalPHP\Connection::addOperation
      * @covers \Gielfeldt\TransactionalPHP\Connection::startTransaction
+     * @covers \Gielfeldt\TransactionalPHP\Connection::setDepth
      */
     public function testAddOperation(Connection $connection)
     {
@@ -229,6 +230,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      * @dataProvider connectionDataProvider
      *
      * @covers \Gielfeldt\TransactionalPHP\Connection::commitTransaction
+     * @covers \Gielfeldt\TransactionalPHP\Connection::setDepth
      *
      * @expectedException \RuntimeException
      */
@@ -303,6 +305,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      * @dataProvider connectionDataProvider
      *
      * @covers \Gielfeldt\TransactionalPHP\Connection::rollbackTransaction
+     * @covers \Gielfeldt\TransactionalPHP\Connection::setDepth
      *
      * @expectedException \RuntimeException
      */

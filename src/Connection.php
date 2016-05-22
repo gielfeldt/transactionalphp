@@ -66,6 +66,25 @@ class Connection
     }
 
     /**
+     * Set current depth.
+     *
+     * @param int $newDepth
+     *   The new depth.
+     *
+     * @return int
+     *   The old depth.
+     */
+    public function setDepth($newDepth)
+    {
+        if (!isset($newDepth) || $newDepth < 0) {
+            throw new \RuntimeException('Trying to commit non-existant transaction.');
+        }
+        $oldDepth = $this->depth;
+        $this->depth = $newDepth;
+        return $oldDepth;
+    }
+
+    /**
      * Remove save points to and acquire index of latest active savepoint.
      *
      * @param int $oldDepth
@@ -149,7 +168,7 @@ class Connection
      */
     public function startTransaction($newDepth = null)
     {
-        $this->depth = isset($newDepth) ? $newDepth : $this->depth + 1;
+        $this->setDepth(isset($newDepth) ? $newDepth : $this->depth + 1);
         $this->savePoints[$this->depth] = $this->idx;
     }
 
@@ -162,11 +181,7 @@ class Connection
      */
     public function commitTransaction($newDepth = null)
     {
-        $oldDepth = $this->depth;
-        $this->depth = isset($newDepth) ? $newDepth : $oldDepth - 1;
-        if ($this->depth < 0) {
-            throw new \RuntimeException('Trying to commit non-existant transaction.');
-        }
+        $oldDepth = $this->setDepth(isset($newDepth) ? $newDepth : $this->depth - 1);
 
         // Close save points and acquire last known open index.
         $idx = $this->closeSavePoints($oldDepth, $this->depth);
@@ -187,11 +202,7 @@ class Connection
      */
     public function rollbackTransaction($newDepth = null)
     {
-        $oldDepth = $this->depth;
-        $this->depth = isset($newDepth) ? $newDepth : $oldDepth - 1;
-        if ($this->depth < 0) {
-            throw new \RuntimeException('Trying to rollback non-existant transaction.');
-        }
+        $oldDepth = $this->setDepth(isset($newDepth) ? $newDepth : $this->depth - 1);
 
         // Close save points and acquire last known open index.
         $idx = $this->closeSavePoints($oldDepth, $this->depth);
