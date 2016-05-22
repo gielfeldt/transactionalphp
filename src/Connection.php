@@ -73,8 +73,8 @@ class Connection
      * @param int $newDepth
      *   The new depth.
      *
-     * @return Operation[]
-     *   The operations found when closing save points.
+     * @return int
+     *   The index of the last open save point.
      */
     protected function closeSavePoints($oldDepth, $newDepth)
     {
@@ -85,20 +85,30 @@ class Connection
                 unset($this->savePoints[$depth]);
             }
         }
+        return $idx;
+    }
 
-        $operations = [];
-
+    /**
+     * Collection operations from the specified index.
+     *
+     * @param int $idx
+     *   The starting index.
+     *
+     * @return Operation[]
+     *   The operations from the specified index (included)
+     */
+    protected function collectOperations($idx)
+    {
         // Collect the operations.
-        if (isset($idx)) {
-            end($this->operations);
-            $lastIdx = key($this->operations);
-            for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
-                if (isset($this->operations[$removeIdx])) {
-                    $operations[$removeIdx] = $this->operations[$removeIdx];
-                }
+        $operations = [];
+        end($this->operations);
+        $lastIdx = key($this->operations);
+        for ($removeIdx = $idx; $removeIdx <= $lastIdx; $removeIdx++) {
+            if (isset($this->operations[$removeIdx])) {
+                $operations[$removeIdx] = $this->operations[$removeIdx];
             }
-            reset($this->operations);
         }
+        reset($this->operations);
         return $operations;
     }
 
@@ -159,10 +169,11 @@ class Connection
         }
 
         // Collect operations and commit if applicable.
-        $operations = $this->closeSavePoints($oldDepth, $this->depth);
+        $idx = $this->closeSavePoints($oldDepth, $this->depth);
 
         // Is this a real commit.
-        if ($this->depth == 0 && !empty($operations)) {
+        if ($this->depth == 0 && isset($idx)) {
+            $operations = $this->collectOperations($idx);
             $this->commitOperations($operations);
         }
     }
@@ -183,7 +194,8 @@ class Connection
         }
 
         // Collect operations and rollback.
-        $operations = $this->closeSavePoints($oldDepth, $this->depth);
+        $idx = $this->closeSavePoints($oldDepth, $this->depth);
+        $operations = $this->collectOperations($idx);
         $this->rollbackOperations($operations);
     }
 
