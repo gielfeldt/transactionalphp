@@ -168,7 +168,7 @@ class Connection
             throw new \RuntimeException('Trying to commit non-existant transaction.');
         }
 
-        // Collect operations and commit if applicable.
+        // Close save points and acquire last known open index.
         $idx = $this->closeSavePoints($oldDepth, $this->depth);
 
         // Is this a real commit.
@@ -193,7 +193,7 @@ class Connection
             throw new \RuntimeException('Trying to rollback non-existant transaction.');
         }
 
-        // Collect operations and rollback.
+        // Close save points and acquire last known open index.
         $idx = $this->closeSavePoints($oldDepth, $this->depth);
         $operations = $this->collectOperations($idx);
         $this->rollbackOperations($operations);
