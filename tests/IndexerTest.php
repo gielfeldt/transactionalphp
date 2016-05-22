@@ -61,19 +61,19 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
     {
         $indexer = new Indexer($connection);
         $connection->startTransaction();
-        $indexer->index('value', $connection->addValue('testvalue'));
+        $indexer->index('test1', $connection->addValue('value1'));
 
-        $check = $indexer->lookup('value');
-        $this->assertSame('testvalue', reset($check)->getValue(), 'Operations not found during lookup.');
+        $check = $indexer->lookup('test1');
+        $this->assertSame('value1', reset($check)->getValue(), 'Operations not found during lookup.');
 
         $operation = new Operation();
         $operation->onCommit(function () {
             return 'testresult';
         });
         $connection->addOperation($operation);
-        $indexer->index('test1', $operation);
+        $indexer->index('test2', $operation);
 
-        $check = $indexer->lookup('test1');
+        $check = $indexer->lookup('test2');
         $this->assertSame([$operation->idx($connection) => $operation], $check, 'Operations not found during lookup.');
     }
 
@@ -92,10 +92,44 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
     {
         $indexer = new Indexer($connection);
         $connection->startTransaction();
-        $operation = $indexer->index('value', $connection->addValue('testvalue'));
-        $indexer->deIndex('value', $operation);
+        $operation = $indexer->index('test', $connection->addValue('value'));
+        $indexer->deIndex('test', $operation);
 
-        $check = $indexer->lookup('value');
+        $check = $indexer->lookup('test');
+        $this->assertSame([], $check, 'Operations found during lookup.');
+    }
+
+    /**
+     * Test automatic de-index.
+     *
+     * @param Connection $connection
+     *   The connection to perform tests on.
+     *
+     * @dataProvider connectionDataProvider
+     *
+     * @covers \Gielfeldt\TransactionalPHP\Indexer::index
+     * @covers \Gielfeldt\TransactionalPHP\Indexer::deIndex
+     * @covers \Gielfeldt\TransactionalPHP\Indexer::lookup
+     */
+    public function testAutoDeIndex(Connection $connection)
+    {
+        $indexer = new Indexer($connection);
+        $connection->startTransaction();
+        $operation1 = $indexer->index('test1', $connection->addValue('value1'));
+
+        $connection->startTransaction();
+        $indexer->index('test2', $connection->addValue('value2'));
+
+        $connection->rollbackTransaction();
+
+        $check = $indexer->lookup('test1');
+        $this->assertSame([$operation1->idx($connection) => $operation1], $check, 'Operations not found during lookup.');
+
+        $check = $indexer->lookup('test2');
+        $this->assertSame([], $check, 'Operations found during lookup.');
+
+        $connection->commitTransaction();
+        $check = $indexer->lookup('test1');
         $this->assertSame([], $check, 'Operations found during lookup.');
     }
 }
