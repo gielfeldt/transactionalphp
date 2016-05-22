@@ -11,7 +11,7 @@ class Indexer
 {
     /**
      * Operations indexed by key and operation index.
-
+     *
      * @var Operation[][]
      */
     protected $index = [];
