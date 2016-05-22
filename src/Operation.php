@@ -19,21 +19,21 @@ class Operation
     /**
      * Callback for commit.
      *
-     * @var callable
+     * @var callable[]
      */
     protected $commit = [];
 
     /**
      * Callback for rollback.
      *
-     * @var callable
+     * @var callable[]
      */
     protected $rollback = [];
 
     /**
      * Callback for buffer.
      *
-     * @var callable
+     * @var callable[]
      */
     protected $buffer = [];
 
