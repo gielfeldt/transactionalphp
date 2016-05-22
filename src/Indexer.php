@@ -44,14 +44,40 @@ class Indexer
      *
      * @param string $key
      *   The key to index undeer.
-     * @param Operation|null $operation
+     * @param Operation $operation
      *   The operation to index.
+     *
+     * @return Operation
+     *   The operation indexed.
      */
-    public function index($key, Operation $operation = null)
+    public function index($key, Operation $operation)
     {
-        if ($operation) {
-            $this->index[$key][$operation->idx($this->connection)] = $operation;
-        }
+        $this->index[$key][$operation->idx($this->connection)] = $operation;
+        $indexer = $this;
+        $operation->onCommit(function ($operation) use ($key, $indexer) {
+            $indexer->deIndex($key, $operation);
+        });
+        $operation->onRollback(function ($operation) use ($key, $indexer) {
+            $indexer->deIndex($key, $operation);
+        });
+        return $operation;
+    }
+
+    /**
+     * De-index operation.
+     *
+     * @param string $key
+     *   The key to index undeer.
+     * @param Operation $operation
+     *   The operation to index.
+     *
+     * @return Operation
+     *   The operation de-indexed.
+     */
+    public function deIndex($key, Operation $operation)
+    {
+        unset($this->index[$key][$operation->idx($this->connection)]);
+        return $operation;
     }
 
     /**

@@ -76,4 +76,26 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
         $check = $indexer->lookup('test1');
         $this->assertSame([$operation->idx($connection) => $operation], $check, 'Operations not found during lookup.');
     }
+
+    /**
+     * Test de-index.
+     *
+     * @param Connection $connection
+     *   The connection to perform tests on.
+     *
+     * @dataProvider connectionDataProvider
+     *
+     * @covers \Gielfeldt\TransactionalPHP\Indexer::deIndex
+     * @covers \Gielfeldt\TransactionalPHP\Indexer::lookup
+     */
+    public function testDeIndex(Connection $connection)
+    {
+        $indexer = new Indexer($connection);
+        $connection->startTransaction();
+        $operation = $indexer->index('value', $connection->addValue('testvalue'));
+        $indexer->deIndex('value', $operation);
+
+        $check = $indexer->lookup('value');
+        $this->assertSame([], $check, 'Operations found during lookup.');
+    }
 }

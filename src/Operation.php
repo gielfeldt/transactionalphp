@@ -10,26 +10,43 @@ namespace Gielfeldt\TransactionalPHP;
 class Operation
 {
     /**
+     * The index in the buffer, keyed by connection id.
+     *
      * @var string[]
      */
     protected $idx;
 
     /**
+     * Callback for commit.
+     *
      * @var callable
      */
-    protected $commit;
+    protected $commit = [];
 
     /**
+     * Callback for rollback.
+     *
      * @var callable
      */
-    protected $rollback;
+    protected $rollback = [];
 
     /**
+     * Callback for buffer.
+     *
+     * @var callable
+     */
+    protected $buffer = [];
+
+    /**
+     * Value for operation.
+     *
      * @var mixed
      */
     protected $value;
 
     /**
+     * Result of callback execution.
+     *
      * @var mixed
      */
     protected $result;
@@ -44,7 +61,7 @@ class Operation
      */
     public function onCommit(callable $callback)
     {
-        $this->commit = $callback;
+        $this->commit[] = $callback;
         return $this;
     }
 
@@ -58,7 +75,21 @@ class Operation
      */
     public function onRollback(callable $callback)
     {
-        $this->rollback = $callback;
+        $this->rollback[] = $callback;
+        return $this;
+    }
+
+    /**
+     * Set buffer callback.
+     *
+     * @param callable $callback
+     *   The callback when this operation is buffered.
+     *
+     * @return $this
+     */
+    public function onBuffer(callable $callback)
+    {
+        $this->buffer[] = $callback;
         return $this;
     }
 
@@ -67,7 +98,7 @@ class Operation
      *
      * @return callable|null
      */
-    public function getCommitCallback()
+    public function getCommitCallbacks()
     {
         return $this->commit;
     }
@@ -77,9 +108,19 @@ class Operation
      *
      * @return callable|null
      */
-    public function getRollbackCallback()
+    public function getRollbackCallbacks()
     {
         return $this->rollback;
+    }
+
+    /**
+     * Get buffer callback.
+     *
+     * @return callable|null
+     */
+    public function getBufferCallbacks()
+    {
+        return $this->buffer;
     }
 
     /**
@@ -152,7 +193,10 @@ class Operation
      */
     public function commit($connection = null)
     {
-        return $this->result = $this->commit ? call_user_func($this->commit, $this, $connection) : null;
+        foreach ($this->commit as $callback) {
+            $this->result = call_user_func($callback, $this, $connection);
+        }
+        return $this->result;
     }
 
     /**
@@ -165,6 +209,25 @@ class Operation
      */
     public function rollback($connection = null)
     {
-        return $this->result = $this->rollback ? call_user_func($this->rollback, $this, $connection) : null;
+        foreach ($this->rollback as $callback) {
+            $this->result = call_user_func($callback, $this, $connection);
+        }
+        return $this->result;
+    }
+
+    /**
+     * Execute buffer operation.
+     *
+     * @param Connection $connection
+     *   The connection to run this operation on.
+     *
+     * @return mixed
+     */
+    public function buffer($connection = null)
+    {
+        foreach ($this->buffer as $callback) {
+            $this->result = call_user_func($callback, $this, $connection);
+        }
+        return $this->result;
     }
 }

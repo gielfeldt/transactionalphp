@@ -317,6 +317,41 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test commit transaction.
+     *
+     * @param Connection $connection
+     *   The connection to perform tests on.
+     *
+     * @dataProvider connectionDataProvider
+     *
+     * @covers \Gielfeldt\TransactionalPHP\Connection::closeSavePoints
+     * @covers \Gielfeldt\TransactionalPHP\Connection::collectOperations
+     * @covers \Gielfeldt\TransactionalPHP\Connection::commitTransaction
+     * @covers \Gielfeldt\TransactionalPHP\Connection::commitOperations
+     */
+    public function testNestedTransaction(Connection $connection)
+    {
+        $accumulator = '';
+        $operation = new Operation();
+        $operation->onRollback(function ($operation, $connection) use (&$accumulator) {
+            $accumulator .= 'rollback';
+            if ($connection->getDepth() > 0) {
+                $connection->addOperation($operation);
+            }
+        });
+
+        $connection->startTransaction();
+        $connection->startTransaction();
+        $connection->startTransaction();
+        $connection->addOperation($operation);
+        $connection->rollbackTransaction();
+        $connection->rollbackTransaction();
+        $connection->rollbackTransaction();
+
+        $this->assertEquals('rollbackrollbackrollback', $accumulator, 'Nested rollback was not performed.');
+    }
+
+    /**
      * Test transaction depth.
      *
      * @param Connection $connection

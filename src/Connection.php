@@ -114,6 +114,7 @@ class Connection
         $this->idx++;
         $this->operations[$idx] = $operation;
         $operation->setIdx($this, $idx);
+        $operation->buffer($this);
         return $operation;
     }
 
