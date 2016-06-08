@@ -107,7 +107,7 @@ class Connection
     public function addOperation(Operation $operation)
     {
         if ($this->depth <= 0) {
-            $operation->commit();
+            $operation->commit($this);
             return $operation;
         }
         $idx = $this->idx;
