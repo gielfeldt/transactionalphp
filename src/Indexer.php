@@ -17,6 +17,13 @@ class Indexer
     protected $index = [];
 
     /**
+     * Operations indexed by this indexer.
+     *
+     * @var Operation[]
+     */
+    protected $operations = [];
+
+    /**
      * The connection used by this indexer.
      *
      * @var Connection
@@ -46,23 +53,26 @@ class Indexer
     /**
      * Index operation.
      *
-     * @param string $key
-     *   The key to index under.
      * @param Operation $operation
      *   The operation to index.
+     * @param string $key
+     *   (optional) The key to index under.
      *
      * @return Operation
      *   The operation indexed.
      */
-    public function index($key, Operation $operation)
+    public function index(Operation $operation, $key = null)
     {
-        $this->index[$key][$operation->idx($this->connection)] = $operation;
+        $this->operations[$operation->idx($this->connection)] = $operation;
+        if (isset($key)) {
+            $this->index[$key][$operation->idx($this->connection)] = $operation;
+        }
         $indexer = $this;
         $operation->onCommit(function ($operation) use ($key, $indexer) {
-            $indexer->deIndex($key, $operation);
+            $indexer->deIndex($operation, $key);
         });
         $operation->onRollback(function ($operation) use ($key, $indexer) {
-            $indexer->deIndex($key, $operation);
+            $indexer->deIndex($operation, $key);
         });
         return $operation;
     }
@@ -70,17 +80,20 @@ class Indexer
     /**
      * De-index operation.
      *
-     * @param string $key
-     *   The key to index under.
      * @param Operation $operation
      *   The operation to index.
+     * @param string $key
+     *   (optional) The key to index under.
      *
      * @return Operation
      *   The operation de-indexed.
      */
-    public function deIndex($key, Operation $operation)
+    public function deIndex(Operation $operation, $key = null)
     {
-        unset($this->index[$key][$operation->idx($this->connection)]);
+        unset($this->operations[$operation->idx($this->connection)]);
+        if (isset($key)) {
+            unset($this->index[$key][$operation->idx($this->connection)]);
+        }
         return $operation;
     }
 
@@ -116,5 +129,25 @@ class Indexer
             }
         }
         return $values;
+    }
+
+    /**
+     * Get current indexed operations.
+     *
+     * @return Operation[]
+     */
+    public function getOperations()
+    {
+        return $this->operations;
+    }
+
+    /**
+     * Get current index.
+     *
+     * @return Operation[][]
+     */
+    public function getIndex()
+    {
+        return $this->index;
     }
 }
