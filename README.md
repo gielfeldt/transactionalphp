@@ -17,7 +17,7 @@ config file.
 ```javascript
 {
     "require": {
-        "gielfeldt/transactionalphp": "^0.5"
+        "gielfeldt/transactionalphp": "^0.6"
     }
 }
 ```
