@@ -111,20 +111,20 @@ class Indexer
     /**
      * Lookup operation values.
      *
-     * @param string $index_key
+     * @param string $indexKey
      *   The index key to look up.
-     * @param string $metadata_key
+     * @param string $metadataKey
      *   The metadata key to look up.
      *
      * @return array
      *   Values keyed by operation index.
      */
-    public function lookupMetadata($index_key, $metadata_key)
+    public function lookupMetadata($indexKey, $metadataKey)
     {
         $values = [];
-        if (isset($this->index[$index_key])) {
-            foreach ($this->index[$index_key] as $operation) {
-                $values[$operation->idx($this->connection)] = $operation->getMetadata($metadata_key);
+        if (isset($this->index[$indexKey])) {
+            foreach ($this->index[$indexKey] as $operation) {
+                $values[$operation->idx($this->connection)] = $operation->getMetadata($metadataKey);
             }
         }
         return $values;
