@@ -140,6 +140,7 @@ class Connection
      */
     public function removeOperation(Operation $operation)
     {
+        $operation->remove($this);
         unset($this->operations[$operation->idx($this)]);
     }
 
@@ -174,18 +175,35 @@ class Connection
     }
 
     /**
-     * Short-hand notation for adding code to be run on rollback.
+     * Short-hand notation for adding code to be run when removed from buffer.
      *
+     * @param callable $callback
+     *   The code to run on removal from buffer.
+     *
+     * @return Operation
+     *   The operation created.
+     */
+    public function onRemove(callable $callback)
+    {
+        return $this->addOperation((new Operation())
+            ->onRemove($callback));
+    }
+
+    /**
+     * Short-hand notation for adding metadata to operation.
+     *
+     * @param string $key
+     *   The key of the metadata to add.
      * @param mixed $value
      *   The value to add.
      *
      * @return Operation
      *   The operation created.
      */
-    public function addValue($value)
+    public function addMetadata($key, $value)
     {
         return $this->addOperation((new Operation())
-            ->setValue($value));
+            ->setMetadata($key, $value));
     }
 
     /**

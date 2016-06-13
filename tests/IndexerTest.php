@@ -56,10 +56,10 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
     {
         $indexer = new Indexer($connection);
         $connection->startTransaction();
-        $indexer->index($connection->addValue('value1'), 'test1');
+        $indexer->index($connection->addMetadata('value', 'value1'), 'test1');
 
         $check = $indexer->lookup('test1');
-        $this->assertSame('value1', reset($check)->getValue(), 'Operations not found during lookup.');
+        $this->assertSame('value1', reset($check)->getMetadata('value'), 'Operations not found during lookup.');
 
         $operation = new Operation();
         $operation->onCommit(function () {
@@ -84,7 +84,7 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
     {
         $indexer = new Indexer($connection);
         $connection->startTransaction();
-        $operation = $indexer->index($connection->addValue('value'), 'test');
+        $operation = $indexer->index($connection->addMetadata('value', 'value1'), 'test');
         $indexer->deIndex($operation, 'test');
 
         $check = $indexer->lookup('test');
@@ -103,10 +103,10 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
     {
         $indexer = new Indexer($connection);
         $connection->startTransaction();
-        $operation1 = $indexer->index($connection->addValue('value1'), 'test1');
+        $operation1 = $indexer->index($connection->addMetadata('value', 'value1'), 'test1');
 
         $connection->startTransaction();
-        $indexer->index($connection->addValue('value2'), 'test2');
+        $indexer->index($connection->addMetadata('value', 'value2'), 'test2');
 
         $connection->rollbackTransaction();
 
@@ -133,12 +133,12 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
      *
      * @dataProvider connectionDataProvider
      */
-    public function testLookupValues(Connection $connection)
+    public function testLookupMetadata(Connection $connection)
     {
         $indexer = new Indexer($connection);
         $connection->startTransaction();
-        $operation1 = $connection->addValue('value1');
-        $operation2 = $connection->addValue('value2');
+        $operation1 = $connection->addMetadata('value', 'value1');
+        $operation2 = $connection->addMetadata('value', 'value2');
         $expected = [
             $operation1->idx($connection) => 'value1',
             $operation2->idx($connection) => 'value2',
@@ -146,7 +146,7 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
         $indexer->index($operation1, 'test1');
         $indexer->index($operation2, 'test1');
 
-        $check = $indexer->lookupValues('test1');
+        $check = $indexer->lookupMetadata('test1', 'value');
         $this->assertSame($expected, $check, 'Operations not found during lookup.');
     }
 
@@ -162,9 +162,9 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
     {
         $indexer = new Indexer($connection);
         $connection->startTransaction();
-        $operation1 = $connection->addValue('value1');
-        $operation2 = $connection->addValue('value2');
-        $operation3 = $connection->addValue('value3');
+        $operation1 = $connection->addMetadata('value', 'value1');
+        $operation2 = $connection->addMetadata('value', 'value2');
+        $operation3 = $connection->addMetadata('value', 'value3');
 
         $indexer->index($operation1, 'test1');
         $indexer->index($operation2, 'test1');
@@ -190,5 +190,4 @@ class IndexerTest extends \PHPUnit_Framework_TestCase
         $check = $indexer->getIndex();
         $this->assertSame($expected, $check, 'Correct operations not found in indexer.');
     }
-
 }

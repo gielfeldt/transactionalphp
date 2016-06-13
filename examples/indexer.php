@@ -20,9 +20,9 @@ $operation = (new Operation())
     })
     ->onBuffer(function ($operation) use ($indexer) {
         print "INDEXING test1\n";
-        $indexer->index('test1', $operation);
+        $indexer->index($operation, 'test1');
     })
-    ->setValue('test1');
+    ->setMetadata('value', 'test1');
 $connection->addOperation($operation);
 
 // Start outer transaction.
@@ -37,9 +37,9 @@ $operation = (new Operation())
     })
     ->onBuffer(function ($operation) use ($indexer) {
         print "INDEXING test2\n";
-        $indexer->index('test2', $operation);
+        $indexer->index($operation, 'test2');
     })
-    ->setValue('test2');
+    ->setMetadata('value', 'test2');
 $connection->addOperation($operation);
 
 // Start inner transaction.
@@ -54,9 +54,9 @@ $operation = (new Operation())
     })
     ->onBuffer(function ($operation) use ($indexer) {
         print "INDEXING test3\n";
-        $indexer->index('test3', $operation);
+        $indexer->index($operation, 'test3');
     })
-    ->setValue('test3');
+    ->setMetadata('value', 'test3');
 $connection->addOperation($operation);
 
 $operation = (new Operation())
@@ -68,19 +68,19 @@ $operation = (new Operation())
     })
     ->onBuffer(function ($operation) use ($indexer) {
         print "INDEXING test3 - second\n";
-        $indexer->index('test3', $operation);
+        $indexer->index($operation, 'test3');
     })
-    ->setValue('test3 - second');
+    ->setMetadata('value', 'test3 - second');
 $connection->addOperation($operation);
 
 foreach ($indexer->lookup('test1') as $operation) {
-    print "Looked up test1 - found: " . $operation->getValue(). "\n";
+    print "Looked up test1 - found: " . $operation->getMetadata('value') . "\n";
 }
 foreach ($indexer->lookup('test2') as $operation) {
-    print "Looked up test2 - found: " . $operation->getValue(). "\n";
+    print "Looked up test2 - found: " . $operation->getMetadata('value') . "\n";
 }
 foreach ($indexer->lookup('test3') as $operation) {
-    print "Looked up test3 - found: " . $operation->getValue(). "\n";
+    print "Looked up test3 - found: " . $operation->getMetadata('value') . "\n";
 }
 
 // Rollback inner transaction.

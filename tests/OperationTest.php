@@ -15,8 +15,6 @@ class OperationTest extends \PHPUnit_Framework_TestCase
      *
      * @return array
      *   Arguments for tests.
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Operation::__construct
      */
     public function operationDataProvider()
     {
@@ -30,10 +28,6 @@ class OperationTest extends \PHPUnit_Framework_TestCase
      *   The operation to perform tests on.
      *
      * @dataProvider operationDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Operation::onCommit
-     * @covers \Gielfeldt\TransactionalPHP\Operation::getCommitCallbacks
-     * @covers \Gielfeldt\TransactionalPHP\Operation::getResult
      */
     public function testCommit(Operation $operation)
     {
@@ -61,10 +55,6 @@ class OperationTest extends \PHPUnit_Framework_TestCase
      *   The operation to perform tests on.
      *
      * @dataProvider operationDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Operation::onRollback
-     * @covers \Gielfeldt\TransactionalPHP\Operation::getRollbackCallbacks
-     * @covers \Gielfeldt\TransactionalPHP\Operation::getResult
      */
     public function testRollback(Operation $operation)
     {
@@ -86,16 +76,39 @@ class OperationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test remove.
+     *
+     * @param Operation $operation
+     *   The operation to perform tests on.
+     *
+     * @dataProvider operationDataProvider
+     */
+    public function testRemove(Operation $operation)
+    {
+        $performed = false;
+        $callback = function () use (&$performed) {
+            $performed = true;
+            return 'performed';
+        };
+        $operation->onRemove($callback);
+
+        $check = $operation->getRemoveCallbacks();
+        $this->assertSame($callback, reset($check), 'Correct callback was not set.');
+
+        $operation->remove();
+        $this->assertTrue($performed, 'Callback was not executed.');
+
+        $check = $operation->getResult();
+        $this->assertSame('performed', $check, 'Callback did not return proper result.');
+    }
+
+    /**
      * Test buffer.
      *
      * @param Operation $operation
      *   The operation to perform tests on.
      *
      * @dataProvider operationDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Operation::onBuffer
-     * @covers \Gielfeldt\TransactionalPHP\Operation::getBufferCallbacks
-     * @covers \Gielfeldt\TransactionalPHP\Operation::getResult
      */
     public function testBuffer(Operation $operation)
     {
@@ -123,18 +136,12 @@ class OperationTest extends \PHPUnit_Framework_TestCase
      *   The operation to perform tests on.
      *
      * @dataProvider operationDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Operation::setValue
-     * @covers \Gielfeldt\TransactionalPHP\Operation::getValue
      */
     public function testValue(Operation $operation)
     {
-        $value = function () {
-            return 'myvalue';
-        };
-        $operation->setValue($value);
+        $operation->setMetadata('value', 'myvalue');
 
-        $check = $operation->getValue();
+        $check = $operation->getMetadata('value');
         $this->assertSame('myvalue', $check, 'Correct value was not set.');
     }
 
@@ -145,9 +152,6 @@ class OperationTest extends \PHPUnit_Framework_TestCase
      *   The operation to perform tests on.
      *
      * @dataProvider operationDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Operation::setIdx
-     * @covers \Gielfeldt\TransactionalPHP\Operation::idx
      */
     public function testIdx(Operation $operation)
     {

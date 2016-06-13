@@ -38,11 +38,18 @@ class Operation
     protected $buffer = [];
 
     /**
-     * Value for operation.
+     * Callback for remove.
      *
-     * @var mixed
+     * @var callable[]
      */
-    protected $value;
+    protected $remove = [];
+
+    /**
+     * Metadata for operation.
+     *
+     * @var mixed[]
+     */
+    protected $metadata = [];
 
     /**
      * Result of callback execution.
@@ -80,6 +87,20 @@ class Operation
     }
 
     /**
+     * Set rollback callback.
+     *
+     * @param callable $callback
+     *   The callback when this operation is rolled back.
+     *
+     * @return $this
+     */
+    public function onRemove(callable $callback)
+    {
+        $this->remove[] = $callback;
+        return $this;
+    }
+
+    /**
      * Set buffer callback.
      *
      * @param callable $callback
@@ -94,7 +115,7 @@ class Operation
     }
 
     /**
-     * Get commit callback.
+     * Get commit callbacks.
      *
      * @return callable|null
      */
@@ -104,7 +125,7 @@ class Operation
     }
 
     /**
-     * Get rollback callback.
+     * Get rollback callbacks.
      *
      * @return callable|null
      */
@@ -114,7 +135,7 @@ class Operation
     }
 
     /**
-     * Get buffer callback.
+     * Get buffer callbacks.
      *
      * @return callable|null
      */
@@ -124,25 +145,42 @@ class Operation
     }
 
     /**
+     * Get remove callbacks.
+     *
+     * @return callable|null
+     */
+    public function getRemoveCallbacks()
+    {
+        return $this->remove;
+    }
+
+    /**
+     * Set metadata.
+     *
+     * @param string $key
+     *   The key of the metadata.
      * @param mixed $value
      *   The value to set.
      *
      * @return $this
      */
-    public function setValue($value)
+    public function setMetadata($key, $value)
     {
-        $this->value = $value;
+        $this->metadata[$key] = $value;
         return $this;
     }
 
     /**
-     * Get value.
+     * Get metadata.
      *
-     * @return mixed
+     * @param $key
+     *   The key of the metadata to get.
+     *
+     * @return mixed|null
      */
-    public function getValue()
+    public function getMetadata($key)
     {
-        return is_callable($this->value) ? call_user_func($this->value) : $this->value;
+        return isset($this->metadata[$key]) ? $this->metadata[$key] : null;
     }
 
     /**
@@ -226,6 +264,22 @@ class Operation
     public function buffer($connection = null)
     {
         foreach ($this->buffer as $callback) {
+            $this->result = call_user_func($callback, $this, $connection);
+        }
+        return $this->result;
+    }
+
+    /**
+     * Execute remove operation.
+     *
+     * @param Connection $connection
+     *   The connection to run this operation on.
+     *
+     * @return mixed
+     */
+    public function remove($connection = null)
+    {
+        foreach ($this->remove as $callback) {
             $this->result = call_user_func($callback, $this, $connection);
         }
         return $this->result;

@@ -6,7 +6,7 @@ use Gielfeldt\TransactionalPHP\Connection;
 use Gielfeldt\TransactionalPHP\Operation;
 
 /**
- * @covers \Gielfeldt\TransactionalPHP\Operation
+ * @covers \Gielfeldt\TransactionalPHP\Connection
  */
 class ConnectionTest extends \PHPUnit_Framework_TestCase
 {
@@ -15,8 +15,6 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *
      * @return array
      *   Arguments for tests.
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::__construct
      */
     public function connectionDataProvider()
     {
@@ -30,9 +28,6 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *   The connection to perform tests on.
      *
      * @dataProvider connectionDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::__construct
-     * @covers \Gielfeldt\TransactionalPHP\Connection::connectionId
      */
     public function testSetup(Connection $connection)
     {
@@ -51,10 +46,6 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *   The connection to perform tests on.
      *
      * @dataProvider connectionDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::addOperation
-     * @covers \Gielfeldt\TransactionalPHP\Connection::startTransaction
-     * @covers \Gielfeldt\TransactionalPHP\Connection::setDepth
      */
     public function testAddOperation(Connection $connection)
     {
@@ -80,9 +71,6 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *   The connection to perform tests on.
      *
      * @dataProvider connectionDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::onCommit
-     * @covers \Gielfeldt\TransactionalPHP\Connection::hasOperation
      */
     public function testOnCommit(Connection $connection)
     {
@@ -109,9 +97,6 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *   The connection to perform tests on.
      *
      * @dataProvider connectionDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::onRollback
-     * @covers \Gielfeldt\TransactionalPHP\Connection::hasOperation
      */
     public function testOnRollback(Connection $connection)
     {
@@ -132,24 +117,69 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test remove.
+     *
+     * @param Connection $connection
+     *   The connection to perform tests on.
+     *
+     * @dataProvider connectionDataProvider
+     */
+    public function testOnRemove(Connection $connection)
+    {
+        $performed = false;
+        $callback = function () use (&$performed) {
+            $performed = true;
+            return 'testresult';
+        };
+        $operation = $connection->onRemove($callback);
+
+        $this->assertFalse($connection->hasOperation($operation), 'Operation was not properly added.');
+
+        $connection->startTransaction();
+        $operation = $connection->onRemove($callback);
+
+        $this->assertTrue($connection->hasOperation($operation), 'Operation was not properly added.');
+        $connection->rollbackTransaction();
+        $check = $operation->getResult();
+        $this->assertSame('testresult', $check, 'Operation was not properly removed.');
+        $this->assertTrue($performed, 'Operation was not properly removed.');
+
+        $performed = false;
+        $callback = function () use (&$performed) {
+            $performed = true;
+            return 'testresult';
+        };
+        $operation = $connection->onRemove($callback);
+
+        $this->assertFalse($connection->hasOperation($operation), 'Operation was not properly added.');
+
+        $connection->startTransaction();
+        $operation = $connection->onRemove($callback);
+
+        $this->assertTrue($connection->hasOperation($operation), 'Operation was not properly added.');
+        $connection->commitTransaction();
+        $check = $operation->getResult();
+        $this->assertSame('testresult', $check, 'Operation was not properly removed.');
+        $this->assertTrue($performed, 'Operation was not properly removed.');
+    }
+
+    /**
      * Test add value.
      *
      * @param Connection $connection
      *   The connection to perform tests on.
      *
      * @dataProvider connectionDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::addValue
      */
-    public function testAddValue(Connection $connection)
+    public function testAddMetadata(Connection $connection)
     {
-        $callback = function () {
-            return 'testresult';
-        };
-        $operation = $connection->addValue($callback);
+        $operation = $connection->addMetadata('value', 'testresult');
 
-        $check = $operation->getValue();
+        $check = $operation->getMetadata('value');
         $this->assertSame('testresult', $check, 'Operation was not properly added.');
+
+        $check = $operation->getMetadata('nonvalue');
+        $this->assertNotSame('testresult', $check, 'Operation was not properly added.');
     }
 
     /**
@@ -159,8 +189,6 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *   The connection to perform tests on.
      *
      * @dataProvider connectionDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::removeOperation
      */
     public function testRemoveOperation(Connection $connection)
     {
@@ -184,11 +212,6 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *   The connection to perform tests on.
      *
      * @dataProvider connectionDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::closeSavePoints
-     * @covers \Gielfeldt\TransactionalPHP\Connection::collectOperations
-     * @covers \Gielfeldt\TransactionalPHP\Connection::commitTransaction
-     * @covers \Gielfeldt\TransactionalPHP\Connection::commitOperations
      */
     public function testCommitTransaction(Connection $connection)
     {
@@ -229,9 +252,6 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *
      * @dataProvider connectionDataProvider
      *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::commitTransaction
-     * @covers \Gielfeldt\TransactionalPHP\Connection::setDepth
-     *
      * @expectedException \RuntimeException
      */
     public function testCommitException(Connection $connection)
@@ -248,11 +268,6 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *   The connection to perform tests on.
      *
      * @dataProvider connectionDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::closeSavePoints
-     * @covers \Gielfeldt\TransactionalPHP\Connection::collectOperations
-     * @covers \Gielfeldt\TransactionalPHP\Connection::rollbackTransaction
-     * @covers \Gielfeldt\TransactionalPHP\Connection::rollbackOperations
      */
     public function testRollbackTransaction(Connection $connection)
     {
@@ -304,9 +319,6 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *
      * @dataProvider connectionDataProvider
      *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::rollbackTransaction
-     * @covers \Gielfeldt\TransactionalPHP\Connection::setDepth
-     *
      * @expectedException \RuntimeException
      */
     public function testRollbackException(Connection $connection)
@@ -323,11 +335,6 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *   The connection to perform tests on.
      *
      * @dataProvider connectionDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::closeSavePoints
-     * @covers \Gielfeldt\TransactionalPHP\Connection::collectOperations
-     * @covers \Gielfeldt\TransactionalPHP\Connection::commitTransaction
-     * @covers \Gielfeldt\TransactionalPHP\Connection::commitOperations
      */
     public function testNestedTransaction(Connection $connection)
     {
@@ -358,8 +365,6 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
      *   The connection to perform tests on.
      *
      * @dataProvider connectionDataProvider
-     *
-     * @covers \Gielfeldt\TransactionalPHP\Connection::getDepth
      */
     public function testDepth(Connection $connection)
     {

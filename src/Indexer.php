@@ -68,10 +68,7 @@ class Indexer
             $this->index[$key][$operation->idx($this->connection)] = $operation;
         }
         $indexer = $this;
-        $operation->onCommit(function ($operation) use ($key, $indexer) {
-            $indexer->deIndex($operation, $key);
-        });
-        $operation->onRollback(function ($operation) use ($key, $indexer) {
+        $operation->onRemove(function ($operation) use ($key, $indexer) {
             $indexer->deIndex($operation, $key);
         });
         return $operation;
@@ -114,18 +111,20 @@ class Indexer
     /**
      * Lookup operation values.
      *
-     * @param string $key
-     *   The key to look up.
+     * @param string $index_key
+     *   The index key to look up.
+     * @param string $metadata_key
+     *   The metadata key to look up.
      *
      * @return array
      *   Values keyed by operation index.
      */
-    public function lookupValues($key)
+    public function lookupMetadata($index_key, $metadata_key)
     {
         $values = [];
-        if (isset($this->index[$key])) {
-            foreach ($this->index[$key] as $operation) {
-                $values[$operation->idx($this->connection)] = $operation->getValue();
+        if (isset($this->index[$index_key])) {
+            foreach ($this->index[$index_key] as $operation) {
+                $values[$operation->idx($this->connection)] = $operation->getMetadata($metadata_key);
             }
         }
         return $values;
