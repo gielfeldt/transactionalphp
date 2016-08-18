@@ -229,7 +229,7 @@ class Operation
      *
      * @return mixed
      */
-    public function commit($connection = null)
+    public function commit(Connection $connection = null)
     {
         foreach ($this->commit as $callback) {
             $this->result = call_user_func($callback, $this, $connection);
@@ -245,7 +245,7 @@ class Operation
      *
      * @return mixed
      */
-    public function rollback($connection = null)
+    public function rollback(Connection $connection = null)
     {
         foreach ($this->rollback as $callback) {
             $this->result = call_user_func($callback, $this, $connection);
@@ -261,7 +261,7 @@ class Operation
      *
      * @return mixed
      */
-    public function buffer($connection = null)
+    public function buffer(Connection $connection = null)
     {
         foreach ($this->buffer as $callback) {
             $this->result = call_user_func($callback, $this, $connection);
@@ -277,7 +277,7 @@ class Operation
      *
      * @return mixed
      */
-    public function remove($connection = null)
+    public function remove(Connection $connection = null)
     {
         foreach ($this->remove as $callback) {
             $this->result = call_user_func($callback, $this, $connection);
